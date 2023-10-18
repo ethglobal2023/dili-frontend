@@ -54,9 +54,6 @@ export const Menu = () => {
                 <MenuIcon tooltip={"My Profile"} link={"/profile/self"}>
                     <AiOutlineUser className={"menu-icon"}/>
                 </MenuIcon>
-                <MenuIcon tooltip={"Admin"} link={"/admin"}>
-                    <RiAdminLine className={"menu-icon"}/>
-                </MenuIcon>
                 <MenuIcon tooltip={"Settings"} link={"/settings"}>
                     <FiSettings className={"menu-icon"}/>
                 </MenuIcon>
