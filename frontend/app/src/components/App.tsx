@@ -21,6 +21,7 @@ import ProfileCard from "./ProfileCard";
 import { ProfilePublish } from "./ProfilePublish";
 import {Resume} from "../types";
 import {ResumeCache} from "../contexts/FileCacheContext";
+import Connections from "./Connections";
 
 export const App: React.FC = () => {
   const { disconnect } = useWallet();
@@ -125,6 +126,16 @@ export const App: React.FC = () => {
                 <EasConfigContextProvider>
                   <AdminHome />
                 </EasConfigContextProvider>
+              }
+            />
+             <Route
+              path="/connections"
+              element={
+              
+                  <RequireXMTPConnected>
+                  <Connections/>
+                  </RequireXMTPConnected>
+           
               }
             />
             <Route
