@@ -32,6 +32,7 @@
     "@xmtp/react-components": "workspace:*",
     "@xmtp/react-sdk": "^2.1.0",
     "antd": "^5.10.0",
+    "axios": "^1.5.1",
     "buffer": "^6.0.3",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
