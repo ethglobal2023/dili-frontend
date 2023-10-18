@@ -2,11 +2,10 @@ import "./Menu.css";
 import React, {FC, PropsWithChildren} from "react";
 import {IconButton, Tooltip} from "@radix-ui/themes";
 import {Link, Route, Routes} from "react-router-dom";
-import {AiOutlineSearch} from "react-icons/ai";
-import {LuMessagesSquare} from "react-icons/lu";
-import {BsPeople, BsPerson} from "react-icons/bs";
-import {RiAdminLine} from "react-icons/ri";
-import {CiSettings} from "react-icons/ci";
+// Alt for messages:
+import {AiOutlineMessage, AiOutlineSearch, AiOutlineUser, AiOutlineUsergroupAdd,} from "react-icons/ai";
+import {FiSettings} from "react-icons/fi";
+import {RiAdminLine, RiMessage2Line} from "react-icons/ri";
 
 
 const MenuIcon: FC<PropsWithChildren<{ tooltip: string; link: string }>> = ({
@@ -47,19 +46,19 @@ export const Menu = () => {
                     <AiOutlineSearch className={"menu-icon"}/>
                 </MenuIcon>
                 <MenuIcon tooltip={"Messages"} link={"/messages"}>
-                    <LuMessagesSquare className={"menu-icon"}/>
+                    <RiMessage2Line className={"menu-icon"}/>
                 </MenuIcon>
                 <MenuIcon tooltip={"Connections"} link={"/connections"}>
-                    <BsPeople className={"menu-icon"}/>
+                    <AiOutlineUsergroupAdd className={"menu-icon"}/>
                 </MenuIcon>
                 <MenuIcon tooltip={"My Profile"} link={"/profile/self"}>
-                    <BsPerson className={"menu-icon"}/>
+                    <AiOutlineUser className={"menu-icon"}/>
                 </MenuIcon>
                 <MenuIcon tooltip={"Admin"} link={"/admin"}>
                     <RiAdminLine className={"menu-icon"}/>
                 </MenuIcon>
                 <MenuIcon tooltip={"Settings"} link={"/settings"}>
-                    <CiSettings className={"menu-icon"}/>
+                    <FiSettings className={"menu-icon"}/>
                 </MenuIcon>
             </div>
         </>

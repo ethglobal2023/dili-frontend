@@ -84,7 +84,9 @@ export const App: React.FC = () => {
                     type="button"
                     onClick={handleStartNewConversation}
                   >
-                    <PlusCircleIcon width={24} /> New message
+                      <div className="flex items-center justify-center space-x-1">
+                          <PlusCircleIcon width={24} /> <span>New message</span>
+                      </div>
                   </button>
                 
                   </div>
