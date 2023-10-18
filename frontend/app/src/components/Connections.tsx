@@ -12,7 +12,7 @@ import axios from 'axios';
 
 
 
-let clientPreferedEngine="159.203.132.121:3005:/api/"
+let clientPreferedEngine="159.203.132.121:3005/api/"
 
 function getLocalConversationState(){
   
@@ -56,13 +56,15 @@ function xmsgcontent(xmessage:any){
 async function syncConversation(convo:any,supabase:any){
   //console.log("🚀 ~ file: App.tsx:53 ~ syncConversation ~ convo:", convo)
   
+
+  let gitcoinScore=-1;
   if(convo &&convo.peerAddress ){
     let peerAddress=convo.peerAddress;
     //console.log("🚀 ~ file: App.tsx:62 ~ syncConversation ~ peerAddress:", peerAddress)
     let clientAddress=convo.client.address;
     let localc = getLocalConvoSync(peerAddress,clientAddress)
     let newc={}
-    if( !localc){ // not found  create new 
+    if( true ||  !localc){ // not found  create new 
 
       
       let mres = await convo.messages({limit:1,direction:1}); //getting first message
@@ -141,22 +143,42 @@ async function syncConversation(convo:any,supabase:any){
 
       let peerTrustScore=-1;
       try{
+
+        const url=  "http://"+clientPreferedEngine+'dili/trustscore';
+      //  console.log("🚀 ~ file: Connections.tsx:146 ~ syncConversation ~ url:", url)
         let scoreres = await axios({
             method: 'post',
-            url: "http://"+clientPreferedEngine+'dili/trustscore',
+            url: url,
             data: {
               ops: 'nothing',
               account: peerAddress
             }
           });
+       // console.log("🚀 ~ file: Connections.tsx:152 ~ syncConversation ~ axios  scoreres:", scoreres)
+
+
+          if(scoreres && scoreres!.data!.result_payload!.score){
+              peerTrustScore=scoreres.data.result_payload.score;
+              console.log("🚀 ~ file: Connections.tsx:160 ~ syncConversation ~ peerTrustScore:", peerTrustScore)
+              
+          }
         }
         catch(error){
             console.log("🚀 ~ file: App.tsx:128 ~ syncConversation ~  axios error:", error)
 
         }
 
-      
+        try{
+          let res3  = await supabase.from('people_search').select('pk,trust_score,gitcoin_score').eq('pk',peerAddress).single();
+          console.log("🚀 ~ file: Connections.tsx:173 ~ syncConversation ~ res3:", res3)
+          
+          if(res3  && res3!.data!.gitcoin_score){
+            gitcoinScore=res3!.data!.gitcoin_score;
 
+          }
+        }catch(error){
+
+        }
 
       newc={peerAddress:peerAddress,clientAddress:clientAddress,autoFilterState:"unknown",userResponse:"unkown",peerTrustScore:peerTrustScore,gitcoinScore:-1,createdAt:convo.createdAt ,firstmsg:firstmsg, lastmsg:lastMessage,relevantword:relevantword, firstword:firstword,secondword:secondword  ,connectionRequests30days:connectionRequests30days  , requestAccouncedPublically:requestAccouncedPublically, syncedAt:(new Date).toISOString()};
       console.log("🚀 ~ file: App.tsx:68 ~ syncConversation ~ newc:", newc)
