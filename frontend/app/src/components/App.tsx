@@ -28,15 +28,15 @@ import { ethers } from "ethers";
 import axios from 'axios';
 
 
-let clientPreferedEngine="localhost:3005:/api/"
+let clientPreferedEngine="159.203.132.121:3005:/api/"
 
 function getLocalConversationState(){
   
 }
 
-function syncConversationlist(list:any){
+async function syncConversationlist(list:any,supabase:any){
   //@ts-ignore
-    list.foreach((c)=>{ syncConversation(a) })
+    list.forEach((c)=>{ syncConversation(c,supabase) })
 }
 
 function getLocalConvoSync(peerAddress:string,clientAddress:string){
@@ -62,12 +62,19 @@ function setLocalConvoSync(peerAddress:string,clientAddress:string,data:object){
   return ( localStorage.setItem("connection_req_state_peerAddress_"+peerAddress+"_clientAddress_"+clientAddress,JSON.stringify(data)) )
 }
 
+function xmsgcontent(xmessage:any){
+    if(xmessage && xmessage.content && typeof xmessage.content === "string" )
+      return xmessage.content
+    else if(xmessage && xmessage.content.content && typeof xmessage.content.content === "string" ) 
+      return xmessage.content.content;
+}
+
 async function syncConversation(convo:any,supabase:any){
-  console.log("🚀 ~ file: App.tsx:53 ~ syncConversation ~ convo:", convo)
+  //console.log("🚀 ~ file: App.tsx:53 ~ syncConversation ~ convo:", convo)
   
   if(convo &&convo.peerAddress ){
     let peerAddress=convo.peerAddress;
-    console.log("🚀 ~ file: App.tsx:62 ~ syncConversation ~ peerAddress:", peerAddress)
+    //console.log("🚀 ~ file: App.tsx:62 ~ syncConversation ~ peerAddress:", peerAddress)
     let clientAddress=convo.client.address;
     let localc = getLocalConvoSync(peerAddress,clientAddress)
     let newc={}
@@ -75,19 +82,22 @@ async function syncConversation(convo:any,supabase:any){
 
       
       let mres = await convo.messages({limit:1,direction:1}); //getting first message
-      const firstmsg =   ( mres&&mres.length>0 )? mres[0].content : "";
+      console.log("🚀 ~ file: App.tsx:78 ~ syncConversation ~ mres:", mres)
+      const firstmsg =   ( mres&&mres.length>0&&mres[0].content &&mres[0].content.content )? xmsgcontent(mres[0]) : "";
       const words =  firstmsg.split(" ");
       const firstword =   words.length>0 ? words[0] : "";
       const secondword =  words.length>1 ? words[1] : "";
       console.log("🚀 ~ file: App.tsx:59 ~ syncConversation ~ firstmsg:", firstmsg)
 
       let relevantword="";
-      let lastMessage="";
+      let lastMessage=" ";
       let lastMessageFirstWord="";
       if(mres&& mres.length>0){
 
       let lastres = await convo.messages({limit:1,direction:2});  // getting lat message 
-      lastMessage=  ( lastres&&lastres.length>0 )? lastres[0].content : "";
+      lastMessage=  ( lastres&&lastres.length>0&&lastres[0].content )? xmsgcontent(lastres[0]) : "";
+      console.log( lastres);
+      console.log( "type "+ typeof lastMessage + " strgf"+JSON.stringify(lastMessage) +" lastres[0].content "+(lastres[0]).content.content );
       const lastMessageword = lastMessage.split(" ")
       lastMessageFirstWord=  ( lastMessageword.length>0)? lastMessageword[0] : "";
 
@@ -149,7 +159,7 @@ async function syncConversation(convo:any,supabase:any){
       try{
         let scoreres = await axios({
             method: 'post',
-            url: clientPreferedEngine+'dili/trustscore',
+            url: "http://"+clientPreferedEngine+'dili/trustscore',
             data: {
               ops: 'nothing',
               account: peerAddress
@@ -190,7 +200,7 @@ export const App: React.FC = () => {
     console.log("🚀 ~ file: App.tsx:32 ~ getMessages ~ allconvo:", allconvo)
 
     if(allconvo && allconvo.length>1)
-      await syncConversation(allconvo[0],supabase);
+      await syncConversationlist(allconvo,supabase);
  
    
   };
