@@ -48,3 +48,6 @@
   margin-top: -38px;
   width: 76px;
 }
+.menu-button {
+ @apply text-black from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br hover:text-white ring-4 shadow-lg shadow-blue-500/50 dark:shadow-lg flex dark:shadow-blue-800/80 font-medium rounded-full text-sm py-2 px-2 text-center;
+}

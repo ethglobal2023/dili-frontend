@@ -81,11 +81,36 @@ export interface Database {
         }
         Relationships: []
       }
+      connection_requests: {
+        Row: {
+          created_at: string
+          from: string
+          from_signature: string
+          id: number
+          request_hash: string
+        }
+        Insert: {
+          created_at?: string
+          from: string
+          from_signature: string
+          id?: number
+          request_hash: string
+        }
+        Update: {
+          created_at?: string
+          from?: string
+          from_signature?: string
+          id?: number
+          request_hash?: string
+        }
+        Relationships: []
+      }
       farcaster_users: {
         Row: {
           created_at: string
           json: Json | null
           profileTokenId: string
+          resumejson: Json | null
           source: string | null
           userAssociatedAddresse: string
           userAssociatedAddresses_all: string[] | null
@@ -94,6 +119,7 @@ export interface Database {
           created_at?: string
           json?: Json | null
           profileTokenId: string
+          resumejson?: Json | null
           source?: string | null
           userAssociatedAddresse: string
           userAssociatedAddresses_all?: string[] | null
@@ -102,6 +128,7 @@ export interface Database {
           created_at?: string
           json?: Json | null
           profileTokenId?: string
+          resumejson?: Json | null
           source?: string | null
           userAssociatedAddresse?: string
           userAssociatedAddresses_all?: string[] | null
@@ -201,33 +228,54 @@ export interface Database {
         }
         Relationships: []
       }
+      on_xmtp: {
+        Row: {
+          created_at: string
+          on_xmtp: boolean
+          pk: string
+        }
+        Insert: {
+          created_at?: string
+          on_xmtp: boolean
+          pk: string
+        }
+        Update: {
+          created_at?: string
+          on_xmtp?: boolean
+          pk?: string
+        }
+        Relationships: []
+      }
       people_search: {
         Row: {
           created_at: string
-          first_name: string | null
           json: Json | null
-          last_name: string | null
+          on_xmtp: string | null
           pk: string
+          preferredname: string | null
+          source: string | null
           text: string | null
           trust_score: number
           updated_at: string | null
         }
         Insert: {
           created_at?: string
-          first_name?: string | null
           json?: Json | null
-          last_name?: string | null
+          on_xmtp?: string | null
           pk: string
+          preferredname?: string | null
+          source?: string | null
           text?: string | null
-          trust_score?: number
+          trust_score: number
           updated_at?: string | null
         }
         Update: {
           created_at?: string
-          first_name?: string | null
           json?: Json | null
-          last_name?: string | null
+          on_xmtp?: string | null
           pk?: string
+          preferredname?: string | null
+          source?: string | null
           text?: string | null
           trust_score?: number
           updated_at?: string | null
@@ -344,6 +392,12 @@ export interface Database {
       }
     }
     Views: {
+      people_without_trust_score: {
+        Row: {
+          pk: string | null
+        }
+        Relationships: []
+      }
       talent_layer_formated: {
         Row: {
           json: Json | null

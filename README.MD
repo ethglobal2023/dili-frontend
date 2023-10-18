@@ -1,5 +1,9 @@
-# Decentralized Linkedin (name pending)
+# Dili Frontend
 
+> ### Note to reviewers: 
+> We moved the frontend to this repo late in the project
+> You can see the commit history [behind the frontend in the backend repo here](https://github.com/JidoTaikaSuru/decentralized-linkedin/commit/2b71abe47841900b10881791c649450364a5d5b2). 
+> We moved the frontend over in [2b71ab](https://github.com/JidoTaikaSuru/decentralized-linkedin/commit/2b71abe47841900b10881791c649450364a5d5b2)
 
 ## Repo structure:
 * frontend: The customer facing UI for the application

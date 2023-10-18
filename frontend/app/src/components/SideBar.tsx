@@ -24,15 +24,19 @@ const SideBar = () => {
             Messages
           </MenuItem>
           <MenuItem icon={<AiOutlineSearch/>} component={<Link to={"/search"}/>}>Search</MenuItem>
-          <MenuItem icon={<BiBadgeCheck/>}>Verifications</MenuItem>
-          <MenuItem icon={<BsPeople />}>Network</MenuItem>
+          <MenuItem icon={<BsPeople />}
+                    disabled={!address}
+          >Network</MenuItem>
           <MenuItem
             icon={<BsFillFilePersonFill />}
-            component={<Link to={`/profile/${address}`} />}
+            component={<Link to={`/profile/self`} />}
+            disabled={!address}
           >
             My Profile
           </MenuItem>
-          <MenuItem icon={<RiAdminLine />} component={<Link to={"/admin"}/>}>Admin</MenuItem>
+          <MenuItem
+              disabled={!address}
+              icon={<RiAdminLine />} component={<Link to={"/admin"}/>}>Admin</MenuItem>
         </Menu>
       </Sidebar>
     </div>

@@ -19,6 +19,8 @@ import { EasConfigContextProvider } from "./admin/EASConfigContext";
 import { AdminHome } from "./admin/AdminHome";
 import ProfileCard from "./ProfileCard";
 import { ProfilePublish } from "./ProfilePublish";
+import {Resume} from "../types";
+import {ResumeCache} from "../contexts/FileCacheContext";
 
 export const App: React.FC = () => {
   const { disconnect } = useWallet();
@@ -67,8 +69,6 @@ export const App: React.FC = () => {
   };
   return (
     <div className="  w-full h-[100vh] bg-[#f7f7f7] ">
-  
-
       <div className="InboxConversations">
         <BrowserRouter>
           {/*<SideBar />*/}
@@ -130,7 +130,7 @@ export const App: React.FC = () => {
               element={<ProfilePublish/>}
             />
             <Route
-              path="/profile/:address"
+              path="/profile/:cid"
               element={<ProfileCard />}
             />
             <Route path="/publish" element={<ProfilePublish />} />

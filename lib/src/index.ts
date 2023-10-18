@@ -253,3 +253,5 @@ export const getAllAttestations = async (
   console.log("all=" + JSON.stringify(all));
   return all;
 };
+
+

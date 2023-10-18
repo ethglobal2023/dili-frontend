@@ -19,3 +19,7 @@
   .input-wrapper input:focus {
     outline-color: 	#bbebff;
   }
+
+.disable-link {
+    pointer-events: none;
+}
