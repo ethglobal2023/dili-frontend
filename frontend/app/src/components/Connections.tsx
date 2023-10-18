@@ -18,6 +18,91 @@ function getLocalConversationState(){
   
 }
 
+function getListOfConnectionRequests(){
+
+}
+
+
+function getConReqListForUserApproval(){
+  return localStorage.getItem("ConReqListForUserApproval") || []
+}
+
+function addConReqListForUserApproval(key:string){
+  let laststate  = [];
+    const b = localStorage.getItem("ConReqListForUserApproval")
+    try{
+      //@ts-ignore
+      if(b && b!.length>5)
+       laststate=JSON.parse(b);
+       
+    }
+    catch(error){
+    console.log("🚀 ~ file: Connections.tsx:34 ~ addConReqListForUserApproval ~  JSON.parse(localStorage.getItem(ConReqListForUserApproval)) failed  error:", error)
+    }
+    laststate.push(key);
+    let out = [ ...(new Set(laststate))]
+    localStorage.setItem("ConReqListForUserApproval",JSON.stringify(out));
+}
+
+function addConReqToSpamList(key:string){
+  let laststate  = [];
+    const b = localStorage.getItem("ConReqSpamList")
+    try{
+      //@ts-ignore
+      if(b && b!.length>5)
+        laststate=JSON.parse(b);
+    }
+    catch(error){
+    console.log("🚀 ~ file:   JSON.parse(localStorage.getItem(ConReqSpamList)) failed  error:", error)
+    }
+    laststate.push(key);
+    let out = [ ...(new Set(laststate))]
+    localStorage.setItem("ConReqSpamList",JSON.stringify(out));
+}
+
+
+
+function addConToApprovedList(key:string){
+
+  if(!isConnectionApproved(key)){
+  let laststate  = [];
+    const b = localStorage.getItem("ApprovedConList")
+    try{
+      //@ts-ignore
+      if(b && b!.length>5)
+       laststate=JSON.parse(b);
+    }
+    catch(error){
+    console.log("🚀 ~   ~ addConToApprovedList ~  JSON.parse(localStorage.getItem(ApprovedConList)) failed  error:", error)
+    }
+    laststate.push(key);
+    localStorage.setItem("ApprovedConList",JSON.stringify(laststate));
+  }
+
+    
+}
+
+function isConnectionApproved(peerAddress:string){
+
+  let out =  false;
+
+    try{
+      //@ts-ignore
+      const a = JSON.parse(localStorage.getItem("ApprovedConList")||[])
+       //@ts-ignore
+       const f =a.filter(aa=>aa.includes(peerAddress));
+       if( f && f.length >0 )
+         return true;
+        
+    }
+    catch(error){
+    console.log("🚀 ~ file: Connections.tsx:64 ~ isConnectionApproved ~ error:", error)
+    }
+
+  return out;
+}
+
+
 async function syncConversationlist(list:any,supabase:any){
   //@ts-ignore
     list.forEach((c)=>{ syncConversation(c,supabase) })
@@ -43,7 +128,7 @@ function getLocalConvoSync(peerAddress:string,clientAddress:string){
 
 
 function setLocalConvoSync(peerAddress:string,clientAddress:string,data:object){
-  return ( localStorage.setItem("connection_req_state_peerAddress_"+peerAddress+"_clientAddress_"+clientAddress,JSON.stringify(data)) )
+  return ( localStorage.setItem("cr_"+peerAddress+"_clientAddress_"+clientAddress,JSON.stringify(data)) )
 }
 
 function xmsgcontent(xmessage:any){
@@ -177,11 +262,29 @@ async function syncConversation(convo:any,supabase:any){
 
           }
         }catch(error){
+        console.log("🚀 ~ file: Connections.tsx:180 ~ syncConversation ~ supabase people_search  error:", error)
 
         }
 
       newc={peerAddress:peerAddress,clientAddress:clientAddress,autoFilterState:"unknown",userResponse:"unkown",peerTrustScore:peerTrustScore,gitcoinScore:-1,createdAt:convo.createdAt ,firstmsg:firstmsg, lastmsg:lastMessage,relevantword:relevantword, firstword:firstword,secondword:secondword  ,connectionRequests30days:connectionRequests30days  , requestAccouncedPublically:requestAccouncedPublically, syncedAt:(new Date).toISOString()};
       console.log("🚀 ~ file: App.tsx:68 ~ syncConversation ~ newc:", newc)
+
+      //TODO change the below based on user settings 
+      if( ( (peerTrustScore>1||gitcoinScore>3) && requestAccouncedPublically && connectionRequests30days<400 )  || (peerTrustScore>24&&gitcoinScore>20) ){
+        addConReqListForUserApproval(peerAddress);
+        //@ts-ignore
+        newc.autoFilterState="spam"
+
+        console.log(" EVAL EVAL EVAL "+peerAddress+" IS OK");
+      }
+      else{
+        addConReqToSpamList(peerAddress);
+
+
+        console.log(" EVAL EVAL EVAL "+peerAddress+" GOT REJECTED");
+          //@ts-ignore
+        newc.autoFilterState="ok"
+      }
 
       setLocalConvoSync(peerAddress,clientAddress,newc);
 
@@ -192,14 +295,7 @@ async function syncConversation(convo:any,supabase:any){
   }
 }
 
-
-
-
-
 const Connections = () => {
-
-
-
   const supabase = useContext(SupabaseContext);
   const { client } = useClient();
   console.log("useClient() xmptpppp: client?.address "+ client?.address)
