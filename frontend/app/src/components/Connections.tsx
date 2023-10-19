@@ -25,7 +25,7 @@ function getListOfConnectionRequests(){
 }
 
 
-function getApprovedConList():string[] {
+export function getApprovedConList():string[] {
   //@ts-ignore
   return JSON.parse(localStorage.getItem("ApprovedConList")) || [""]
 }
@@ -103,7 +103,6 @@ function addConToApprovedList(key:string){
     localStorage.setItem("ApprovedConList",JSON.stringify(laststate));
   }
   //check if the key is in any other list and remove it if it is. 
-
 
   removeKeyFromSpamList(key);
   removeKeyFromWaitingList(key);
@@ -226,17 +225,6 @@ async function syncConversation(convo:any,supabase:any){
   
 
 
-  function getConStatus(peerAddress:string){
-    try{
-      //@ts-ignore
-    return ( JSON.parse(localStorage.getItem(("cr_"+peerAddress+"_clientAddress_"+clientAddress).toLocaleUpperCase()) ))
-    }
-    catch(error){
-      console.log("🚀 ~ file: Connections.tsx:142 ~ getConStatus ~ error:", error)
-      
-    }
-    
-  }
 
 
   let gitcoinScore=-1;
@@ -247,7 +235,7 @@ async function syncConversation(convo:any,supabase:any){
     console.log("🚀 ~ file: Connections.tsx:152 ~ syncConversation ~ clientAddress:", clientAddress)
     let localc = getLocalConvoSync(peerAddress,clientAddress)
     let newc={}
-    if( true ||  !localc){ //TODO remove true 
+    if(!localc){ //TODO remove true 
 
       
       let mres = await convo.messages({limit:1,direction:1}); //getting first message
@@ -359,7 +347,7 @@ async function syncConversation(convo:any,supabase:any){
           let res3  = await supabase.from('people_search').select('pk,trust_score,gitcoin_score').eq('pk',peerAddress).single();
           console.log("🚀 ~ file: Connections.tsx:173 ~ syncConversation ~ res3:", res3)
           
-          if(res3  && res3!.data!.gitcoin_score){
+          if(res3  && res3?.data?.gitcoin_score){
             gitcoinScore=res3!.data!.gitcoin_score;
 
           }
@@ -375,17 +363,17 @@ async function syncConversation(convo:any,supabase:any){
       if( ( (peerTrustScore>1||gitcoinScore>3) && requestAccouncedPublically && connectionRequests30days<400 )  || (peerTrustScore>24&&gitcoinScore>20) ){
         addConReqListForUserApproval(peerAddress);
         //@ts-ignore
-        newc.autoFilterState="spam"
+        newc.autoFilterState="ok"
 
         console.log(" EVAL EVAL EVAL "+peerAddress+" IS OK         .     data="+JSON.stringify(newc));
       }
       else{
         addConReqToSpamList(peerAddress);
 
-
+          //@ts-ignore 
+        newc.autoFilterState="spam"
         console.log(" EVAL EVAL EVAL "+peerAddress+" GOT REJECTED     .   data="+JSON.stringify(newc));
           //@ts-ignore
-        newc.autoFilterState="ok"
       }
 
       setLocalConvoSync(peerAddress,clientAddress,newc);
@@ -401,7 +389,30 @@ const Connections = () => {
 
 
 
-  let changeme = 1;
+
+
+  function getConStatusMini(peerAddress:string){
+    try{
+      //@ts-ignore
+      
+      console.log("🚀 ~ file: Connections.tsx:399 ~ clientAddress ~ ",clientAddress)
+    console.log("🚀 ~ file: Connections.tsx:399 ~ getConStatusMini ~ clientAddress:", clientAddress)
+      console.log("🚀 ~ file: Connections.tsx:399 ~ getConStatusMini ~ "+("cr_"+peerAddress+"_clientAddress_"+clientAddress).toLocaleUpperCase())
+
+ //@ts-ignore
+    return ( JSON.parse(localStorage.getItem(("cr_"+peerAddress+"_clientAddress_"+clientAddress).toLocaleUpperCase()) ))
+    }
+    catch(error){
+      console.log("🚀 ~ file: Connections.tsx:142 ~ getConStatus ~ error:", error)
+      
+    }
+    
+  }
+
+  
+
+  const [count, setCount] = useState(0);
+  const [showAll, setShowAll] = useState(false);
   const connectionForUserToApproveList =  getConReqListForUserApproval();
   const connectionApprovedList =  getApprovedConList();
   const connectionSpamList =  getSpamList();
@@ -426,7 +437,7 @@ const Connections = () => {
   const acceptClickHandler = (key:string) => {
     return (event: React.MouseEvent) => {
       addConToApprovedList(key)
-      changeme+=1;
+      setCount(1+count)
      event.preventDefault();
     }
   }
@@ -434,7 +445,7 @@ const Connections = () => {
   const rejectClickHandler = (key:string) => {
     return (event: React.MouseEvent) => {
       addConReqToSpamList(key)
-      changeme+=1;
+      setCount(1+count)
       event.preventDefault();
     }
   }
@@ -443,15 +454,17 @@ const Connections = () => {
     let s ="";
     //@ts-ignore
     if( getConStatus(key,clientAddress)){
+       console.log("🚀 ~ file: Connections.tsx:451 ~ simplergetConStatus ~ clientAddress:", clientAddress)
        //@ts-ignore
       s= getConStatus(key,clientAddress);
 
       //@ts-ignore
-      return ( " connectionRequests30days="+s.connectionRequests30days+" requestAccouncedPublically="+s.requestAccouncedPublically+" peerTrustScore="+peerTrustScore+" gitcoinScore="+gitcoinScore )
+      return ( " connectionRequests30days="+s.connectionRequests30days+" requestAccouncedPublically="+s.requestAccouncedPublically+" peerTrustScore="+s.peerTrustScore+" gitcoinScore="+s.gitcoinScore+" autoFilterState=" +s.autoFilterState )
     }
     return "";
 
   }
+
 
 
   useEffect(() => {
@@ -463,8 +476,8 @@ const Connections = () => {
 
     const navigate = useNavigate();
     const { address } = useAccount();
-    const clientAddress = client?.address?.toLocaleUpperCase;
     const { data: walletClient } = useWalletClient();
+    const clientAddress = walletClient?.account?.address
     const [xmtpClient, setXmtpClient] = useState<Client | null>(null);
   
     useEffect(() => {
@@ -543,11 +556,7 @@ const Connections = () => {
                 <li key={item} className="">
                 
                   <div className="flex gap-16 mx-12 card-2">
-                    <img
-                      className="rounded-full h-[80px] w-[80px]"
-                      src="https://avatars.githubusercontent.com/u/65860201?s=96&v=4"
-                      alt="profile-image"
-                    />
+                    
                     <div>
                       <div>
                         <p className=" font-sans mb-2">
@@ -573,6 +582,9 @@ const Connections = () => {
                         </p>
                          
                       </div>
+                      <p className="text-gray-300 font-sans text-sm">
+                        {  simplergetConStatus(item)} 
+                        </p>
                     </div>
                   </div>
                 </li>
@@ -584,8 +596,9 @@ const Connections = () => {
         </div>
 
 
+             <a  className="btn btn-link gap-16 mx-8"  onClick={()=>setShowAll(!showAll)}>Show All ...</a>
+        <div  style={{display: (showAll) ? 'block' : 'none'}}>
 
-        <div>
           <h2 className="text-center font-sans text-[12px] font-bold mb-2">Spam Folder</h2>
 
           <ul className="flex flex-row flex-wrap ">
@@ -595,17 +608,13 @@ const Connections = () => {
                 <li key={item} className="">
                 
                   <div className="flex gap-16 mx-8 card-2">
-                    <img
-                      className="rounded-full h-[40px] w-[40px]"
-                      src="https://avatars.githubusercontent.com/u/65860201?s=96&v=4"
-                      alt="profile-image"
-                    />
+                    
                     <div>
                       <div>
                         <p className=" font-sans mb-2">
-                          <strong>{item}</strong>  
+                          <strong className="text-red-500">{item}</strong>  
                         </p>
-                        { simplergetConStatus(item)}
+                         {  " "}
                       
                         <button  onClick={acceptClickHandler(item)}
                           className="text-white mb-4 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-4 text-center mr-2  h-[30px]"
@@ -614,7 +623,13 @@ const Connections = () => {
                           Accept
                         </button>
                       </div>
-                    
+
+                    <div className="relative border-2 border-gray-400 rounded-md h-[60px]">
+                        <p className="text-gray-600 ml-2 font-sans">
+                        {  simplergetConStatus(item)} 
+                        </p>
+                         
+                      </div>
                     </div>
                   </div>
                 </li>
@@ -627,7 +642,7 @@ const Connections = () => {
 
 
 
-        <div>
+        <div style={{display: (showAll) ? 'block' : 'none'}}>
           <h2 className="text-center font-sans text-[12px] font-bold mb-2">Accepted Connections</h2>
 
           <ul className="flex flex-row flex-wrap ">
@@ -637,18 +652,13 @@ const Connections = () => {
                 <li key={item} className="">
                 
                   <div className="flex gap-16 mx-8 card-2">
-                    <img
-                      className="rounded-full h-[40px] w-[40px]"
-                      src="https://avatars.githubusercontent.com/u/65860201?s=96&v=4"
-                      alt="profile-image"
-                    />
+                    
                     <div>
                       <div>
                         <p className=" font-sans mb-2">
-                          <strong>{item}</strong>  
+                          <strong className="text-green-500">{item}</strong>  
                         </p>
-                        { simplergetConStatus(item)}
-                      
+                       
                         <button onClick={rejectClickHandler(item)}
                           className="text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 shadow-lg shadow-red-500/50 font-medium rounded-lg text-sm px-4 mb-4  text-center mr-2  h-[30px]"
                           type="submit"
@@ -656,7 +666,12 @@ const Connections = () => {
                           Reject
                         </button>
                       </div>
-                    
+                      <div className="relative border-2 border-gray-400 rounded-md h-[60px]">
+                        <p className="text-gray-600 ml-2 font-sans">
+                        {  simplergetConStatus(item)} 
+                        </p>
+                         
+                      </div>
                     </div>
                   </div>
                 </li>
@@ -669,7 +684,7 @@ const Connections = () => {
 
 
       </div>
-      <p className="text-white">{changeme}</p>
+  
     </div>
 
   );
