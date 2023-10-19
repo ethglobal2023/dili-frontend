@@ -147,9 +147,13 @@ export const App: React.FC = () => {
             <Route
               path="/admin"
               element={
+             
                 <EasConfigContextProvider>
+                     <RequireXMTPConnected>
                   <AdminHome />
+                  </RequireXMTPConnected>
                 </EasConfigContextProvider>
+
               }
             />
             <Route
