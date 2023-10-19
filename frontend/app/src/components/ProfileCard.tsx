@@ -39,7 +39,7 @@ export default function ProfileCard() {
 
         if (!stageCid) {
           console.log("No cid provided");
-          // setLoading(false);
+          setLoading(false);
           return;
         }
         if (stageCid === "self") {
