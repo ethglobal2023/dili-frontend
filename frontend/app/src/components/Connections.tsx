@@ -30,7 +30,7 @@ export function getApprovedConList():string[] {
   return JSON.parse(localStorage.getItem("ApprovedConList")) || [""]
 }
 
-function getConReqListForUserApproval():string[] {
+export function getConReqListForUserApproval():string[] {
   //@ts-ignore
   return JSON.parse(localStorage.getItem("ConReqListForUserApproval")) || [""]
 }
