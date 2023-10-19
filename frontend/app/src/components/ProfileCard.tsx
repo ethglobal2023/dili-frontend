@@ -47,6 +47,7 @@ export default function ProfileCard() {
                             .eq("address", walletAddress.toLowerCase())
                             .single();
                         if (!data?.cid) throw new Error("No CID found for this address");
+                        console.log("CID:",data.cid)
                         stageCid = data.cid
                     }
                     console.log("Fetching resume from IPFS");

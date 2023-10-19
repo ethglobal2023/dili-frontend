@@ -32,6 +32,7 @@ import Connections from "./Connections";
 import { SupabaseContext } from "../contexts/SupabaseContext";
 import { ethers } from "ethers";
 import axios from "axios";
+import { ProfileEdit } from "./ProfileEdit";
 
 export const App: React.FC = () => {
   const { disconnect } = useWallet();
@@ -159,7 +160,7 @@ export const App: React.FC = () => {
                 </RequireXMTPConnected>
               }
             />
-            <Route path="/profileEdit" element={<ProfilePublish />} />
+            <Route path="/profileEdit" element={<ProfileEdit />} />
             <Route path="/profile/:cid" element={<ProfileCard />} />
             <Route path="/publish" element={<ProfilePublish />} />
           </Routes>
