@@ -1,14 +1,16 @@
 import React, { useContext, useEffect, useState } from "react";
 import FileUploadModal from "./FileUpload";
 import "./ProfileCard.css";
-import { useNavigate, useParams } from "react-router-dom";
-import { Resume } from "../types";
-import { ipfsDownload } from "../ipfs";
-import { IoMdArrowBack } from "react-icons/io";
+import {  useNavigate, useParams  } from "react-router-dom";
+import {  Resume, IndexedUser  } from "../types";
+import {  ipfsDownload  } from "../ipfs";
+import {  IoMdArrowBack  } from "react-icons/io";
 import "./App.css";
-import { useWallet } from "../hooks/useWallet";
-import { SupabaseContext } from "../contexts/SupabaseContext";
-import { useResumeCache } from "../contexts/FileCacheContext";
+import {  useWallet  } from "../hooks/useWallet";
+import {  SupabaseContext  } from "../contexts/SupabaseContext";
+import {  useResumeCache  } from "../contexts/FileCacheContext";
+import axios from "axios";
+import SocialBadge from "./SocialBadge";
 import Loading from "./Loading";
 import Avatar, { genConfig } from 'react-nice-avatar'
 export default function ProfileCard() {

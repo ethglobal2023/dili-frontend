@@ -12,7 +12,9 @@ import axios from 'axios';
 
 
 
-let clientPreferedEngine="159.203.132.121:3005/api/"
+
+
+let clientPreferedEngine="159.203.132.121:3005/api/" //TODO change this to using standard settings 
 
 function getLocalConversationState(){
   
@@ -23,8 +25,9 @@ function getListOfConnectionRequests(){
 }
 
 
-function getConReqListForUserApproval(){
-  return localStorage.getItem("ConReqListForUserApproval") || []
+function getConReqListForUserApproval():string[] {
+  //@ts-ignore
+  return JSON.parse(localStorage.getItem("ConReqListForUserApproval")) || [""]
 }
 
 function addConReqListForUserApproval(key:string){
@@ -128,7 +131,18 @@ function getLocalConvoSync(peerAddress:string,clientAddress:string){
 
 
 function setLocalConvoSync(peerAddress:string,clientAddress:string,data:object){
-  return ( localStorage.setItem("cr_"+peerAddress+"_clientAddress_"+clientAddress,JSON.stringify(data)) )
+  return ( localStorage.setItem(("cr_"+peerAddress+"_clientAddress_"+clientAddress).toLocaleUpperCase(),JSON.stringify(data)) )
+}
+
+function getConStatus(peerAddress:string,clientAddress:string){
+  try{
+    //@ts-ignore
+  return ( JSON.parse(localStorage.getItem(("cr_"+peerAddress+"_clientAddress_"+clientAddress).toLocaleUpperCase()) ))
+  }
+  catch(error){
+    console.log("🚀 ~ file: Connections.tsx:142 ~ getConStatus ~ error:", error)
+    
+  }
 }
 
 function xmsgcontent(xmessage:any){
@@ -142,21 +156,35 @@ async function syncConversation(convo:any,supabase:any){
   //console.log("🚀 ~ file: App.tsx:53 ~ syncConversation ~ convo:", convo)
   
 
+
+  function getConStatus(peerAddress:string){
+    try{
+      //@ts-ignore
+    return ( JSON.parse(localStorage.getItem(("cr_"+peerAddress+"_clientAddress_"+clientAddress).toLocaleUpperCase()) ))
+    }
+    catch(error){
+      console.log("🚀 ~ file: Connections.tsx:142 ~ getConStatus ~ error:", error)
+      
+    }
+  }
+
+
   let gitcoinScore=-1;
   if(convo &&convo.peerAddress ){
     let peerAddress=convo.peerAddress;
     //console.log("🚀 ~ file: App.tsx:62 ~ syncConversation ~ peerAddress:", peerAddress)
-    let clientAddress=convo.client.address;
+    let clientAddress=convo.client.address.toUpperCase();
+    console.log("🚀 ~ file: Connections.tsx:152 ~ syncConversation ~ clientAddress:", clientAddress)
     let localc = getLocalConvoSync(peerAddress,clientAddress)
     let newc={}
-    if( true ||  !localc){ // not found  create new 
+    if( true ||  !localc){ //TODO remove true 
 
       
       let mres = await convo.messages({limit:1,direction:1}); //getting first message
       console.log("🚀 ~ file: App.tsx:78 ~ syncConversation ~ mres:", mres)
       const firstmsg =   ( mres&&mres.length>0&&mres[0].content &&mres[0].content.content )? xmsgcontent(mres[0]) : "";
       const words =  firstmsg.split(" ");
-      const firstword =   words.length>0 ? words[0] : "";
+      const firstword =   firstmsg.split(" ")[0];
       const secondword =  words.length>1 ? words[1] : "";
       console.log("🚀 ~ file: App.tsx:59 ~ syncConversation ~ firstmsg:", firstmsg)
 
@@ -168,9 +196,9 @@ async function syncConversation(convo:any,supabase:any){
       let lastres = await convo.messages({limit:1,direction:2});  // getting lat message 
       lastMessage=  ( lastres&&lastres.length>0&&lastres[0].content )? xmsgcontent(lastres[0]) : "";
       console.log( lastres);
-      console.log( "type "+ typeof lastMessage + " strgf"+JSON.stringify(lastMessage) +" lastres[0].content "+(lastres[0]).content.content );
-      const lastMessageword = lastMessage.split(" ")
-      lastMessageFirstWord=  ( lastMessageword.length>0)? lastMessageword[0] : "";
+      console.log( "type "+ typeof lastMessage + " strgf"+JSON.stringify(lastMessage) +" lastres[0].content "+( xmsgcontent(lastres[0]) ));
+      //const lastMessageword = lastMessage.split(" ")
+      lastMessageFirstWord=  lastMessage.split(" ")[0];
 
       }
 
@@ -186,12 +214,15 @@ async function syncConversation(convo:any,supabase:any){
       let requestAccouncedPublically=false;
 
 
-      if( firstword.includes(clientAddress) ||  lastMessageFirstWord.includes(clientAddress)){
 
+      console.log("TEST   ~ firstword:"+firstword+"### ~ lastMessageFirstWord:"+lastMessageFirstWord+" clientAddress:"+clientAddress+"  peerAddress:"+peerAddress)
+      if( firstword.toUpperCase().includes(clientAddress.toUpperCase()) ||  lastMessageFirstWord.toUpperCase().includes(clientAddress.toUpperCase())){
+        console.log("TRUUUUE   ~ firstword:"+firstword+"### ~ lastMessageFirstWord:"+lastMessageFirstWord+" clientAddress:"+clientAddress+"  peerAddress:"+peerAddress)
+     
         
-        if(firstword.includes(clientAddress) )
+        if(firstword.toUpperCase().includes(clientAddress.toUpperCase()) )  //this is too simple can be exploitet to invite multiple people in 1 request count
             relevantword=firstword;
-        if(lastMessageFirstWord.includes(clientAddress))
+        if(lastMessageFirstWord.toUpperCase().includes(clientAddress.toUpperCase()))
             relevantword=lastMessageFirstWord;
         
         
@@ -204,7 +235,8 @@ async function syncConversation(convo:any,supabase:any){
           console.log("🚀 ~ file: App.tsx:97 ~ ethers.sha256(ethers.toUtf8Bytes(relevantword)).toString() ~ error:", error)
         }
 
-        try{
+        try{ 
+          console.log("🚀 ~ file: Connections.tsx:212 ~ syncConversation ~ connection_message_hash:"+connection_message_hash+"  peerAddress:"+peerAddress)
           let res0  = await supabase.from('connection_requests').select('*').eq('from',peerAddress).eq('request_hash', connection_message_hash);
           if(res0){
             requestAccouncedPublically=true
@@ -220,7 +252,7 @@ async function syncConversation(convo:any,supabase:any){
           
         }
         catch(error){
-          console.error("supabase failed ")
+          console.error("supabase failed on"+" connection_message_hash:"+connection_message_hash+"  peerAddress:"+peerAddress+" error:"+error)
         }
 
 
@@ -266,7 +298,7 @@ async function syncConversation(convo:any,supabase:any){
 
         }
 
-      newc={peerAddress:peerAddress,clientAddress:clientAddress,autoFilterState:"unknown",userResponse:"unkown",peerTrustScore:peerTrustScore,gitcoinScore:-1,createdAt:convo.createdAt ,firstmsg:firstmsg, lastmsg:lastMessage,relevantword:relevantword, firstword:firstword,secondword:secondword  ,connectionRequests30days:connectionRequests30days  , requestAccouncedPublically:requestAccouncedPublically, syncedAt:(new Date).toISOString()};
+      newc={peerAddress:peerAddress,clientAddress:clientAddress,autoFilterState:"unknown",userResponse:"unkown",peerTrustScore:peerTrustScore,gitcoinScore:-1,createdAt:convo.createdAt ,firstmsg:firstmsg, lastmsg:lastMessage,relevantword:relevantword, firstword:firstword,secondword:secondword  , lastMessageFirstWord:lastMessageFirstWord, connectionRequests30days:connectionRequests30days  , requestAccouncedPublically:requestAccouncedPublically, syncedAt:(new Date).toISOString()};
       console.log("🚀 ~ file: App.tsx:68 ~ syncConversation ~ newc:", newc)
 
       //TODO change the below based on user settings 
@@ -275,13 +307,13 @@ async function syncConversation(convo:any,supabase:any){
         //@ts-ignore
         newc.autoFilterState="spam"
 
-        console.log(" EVAL EVAL EVAL "+peerAddress+" IS OK");
+        console.log(" EVAL EVAL EVAL "+peerAddress+" IS OK         .     data="+JSON.stringify(newc));
       }
       else{
         addConReqToSpamList(peerAddress);
 
 
-        console.log(" EVAL EVAL EVAL "+peerAddress+" GOT REJECTED");
+        console.log(" EVAL EVAL EVAL "+peerAddress+" GOT REJECTED     .   data="+JSON.stringify(newc));
           //@ts-ignore
         newc.autoFilterState="ok"
       }
@@ -296,6 +328,13 @@ async function syncConversation(convo:any,supabase:any){
 }
 
 const Connections = () => {
+
+
+
+
+  const connectionForUserToApproveList =  getConReqListForUserApproval();
+  console.log("🚀 ~ file: Connections.tsx:312 ~ Connections ~ connectionForUserToApproveList:", connectionForUserToApproveList)
+  
   const supabase = useContext(SupabaseContext);
   const { client } = useClient();
   console.log("useClient() xmptpppp: client?.address "+ client?.address)
@@ -323,6 +362,7 @@ const Connections = () => {
 
     const navigate = useNavigate();
     const { address } = useAccount();
+    const clientAddress = client?.address?.toLocaleUpperCase;
     const { data: walletClient } = useWalletClient();
     const [xmtpClient, setXmtpClient] = useState<Client | null>(null);
   
@@ -369,29 +409,16 @@ const Connections = () => {
         });
         // for await (const conversation of stream) {
         //    console.log(`New conversation started with ${conversation.peerAddress}`);}
-// for await (const conversation of stream) {
-//   console.log(`New conversation started with ${conversation.peerAddress}`);
-//   }  }
+    // for await (const conversation of stream) {
+    //   console.log(`New conversation started with ${conversation.peerAddress}`);
+    //   }  }
 
       }};
   
       initializeXmtpClient();
       */
     }, [walletClient]);
-  const connectionList = [
-    {
-      name: "John Doe",
-      image: "",
-    },
-    {
-      name: "John Doe",
-      image: "",
-    },
-    {
-      name: "John Doe",
-      image: "",
-    },
-  ];
+    
   return (
     <div className="w-[100%]">
       {" "}
@@ -409,9 +436,10 @@ const Connections = () => {
           <h2 className="text-center font-sans text-[24px] font-bold mb-4">Your Invitations</h2>
 
           <ul className="flex flex-row flex-wrap ">
-            {connectionList.map((item,index) => {
+            {connectionForUserToApproveList.map((item,index) => {
+              //const itemstatus=getConStatus(item);
               return (
-                <li key={index} className="">
+                <li key={item} className="">
                 
                   <div className="flex gap-16 mx-12 card-2">
                     <img
@@ -422,7 +450,7 @@ const Connections = () => {
                     <div>
                       <div>
                         <p className=" font-sans mb-2">
-                          <strong>{item.name}</strong> is intiving you to
+                          <strong>{item}</strong> is intiving you to
                           connect
                         </p>
                         <button

@@ -8,6 +8,24 @@ type OrganizationData = {
   organizationWebsite: string;
   type: "education" | "work" | "volunteer";
 };
+export type IndexedUser = {
+  address: string;
+  identity: string;
+  platform: string;
+  displayName: string;
+  avatar: string;
+  email: string | null;
+  description: string | null;
+  location: string | null;
+  header: string | null;
+  error: string | null;
+  links: {
+    [key: string]: {
+      link: string;
+      handle: string;
+    };
+  };
+};
 export type Resume = {
   dids: string[];
   pubKey: string;
