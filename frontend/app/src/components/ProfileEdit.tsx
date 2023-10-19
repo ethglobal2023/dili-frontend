@@ -103,7 +103,7 @@ export function ProfileEdit() {
 const fetchData = async () => {
   try {
     const response = await axios.get(
-      `http://159.203.132.121:3005/api/attestations?address=${address}`
+      `http://159.203.132.121:3006/api/attestations?address=${address}`
     );
     console.log("Attestation Data", response.data);
     setAttestationsData(response.data);
@@ -169,7 +169,7 @@ const fetchData = async () => {
         signature,
       };
       
-      const res2 = await fetch(`${BACKEND_URL}/profile`, {
+      const res2 = await fetch(`http://159.203.132.121:3006/api/profile`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // headers: { 'Content-Type': 'multipart/form-data' },

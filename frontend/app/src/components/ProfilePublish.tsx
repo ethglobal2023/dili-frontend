@@ -148,10 +148,11 @@ export function ProfilePublish() {
         <IoMdArrowBack className="mt-1" />
         <p>Back</p>
       </div>
-      {loading?<Loading/>:(<div className="flex min-h-screen h-fit  w-full bg-white justify-center align-middle">
-        <form
+      {loading?<Loading/>:(<div className="flex flex-col min-h-screen h-fit  w-full bg-white justify-center align-middle">
+        <div className="w-full flex justify-center"><h1 className="text-[24px] font-bold text-center mt-14">Create your Profile</h1></div>
+       <div className="flex justify-center"> <form
           onSubmit={handleSubmit(onSubmit)}
-          className="  text-gray-800 font-montserrat h-fit mt-12 w-[600px] lg:p-10 p-6  bg-white bg-opacity-5 shadow-md  backdrop-blur rounded-xl border border-gray-400 border-opacity-18 "
+          className="  text-gray-800  font-montserrat h-fit mt-4 w-[600px] lg:p-10 p-6  bg-white bg-opacity-5 shadow-md  backdrop-blur rounded-xl border border-gray-400 border-opacity-18 "
         >
           <div className="flex gap-12">
             <div className=" flex flex-col w-[200px]">
@@ -162,7 +163,7 @@ export function ProfilePublish() {
               <input
                 type="text"
                 {...register("firstName", { required: true })}
-                
+                placeholder="Your first name"
               />
              </div>
             </div>
@@ -174,6 +175,7 @@ export function ProfilePublish() {
               <div className="input">
               <input
               {...register("lastName", { required: true })}
+              placeholder="Your last name"
               /></div>
             </div>
           </div>
@@ -190,6 +192,7 @@ export function ProfilePublish() {
               </label> <div className="input">
               <input
               {...register("language", { required: true })}
+              placeholder="Languages you speak"
               />
               </div>
             </div>
@@ -338,50 +341,50 @@ export function ProfilePublish() {
           </div>
           <br />
 
-          <div className="flex gap-12">
+          <div className="flex gap-14">
             <div>
-              <label className="block mb-2 text-md font-medium text-gray-800">
+              <label className="block  text-md font-medium text-gray-800">
                 Preferred Name:
                 <div className="input">  <input
                   type="text"
                   {...register("preferredName", { required: true })}
-                  placeholder="name"
+                  placeholder="Your preferred name"
                 /></div>
               </label>
             </div>
             <br />
             <div>
-              <label className="block mb-2 text-md font-medium text-gray-800">
+              <label className="block  text-md font-medium text-gray-800">
                 Preferred Title:
                 <div className="input"> <input
                   type="text"
                   {...register("preferredTitle", { required: true })}
-                  placeholder="Lecturer"
+                  placeholder="Your preferred title"
                 /></div>
               </label>
             </div>
             <br />
           </div>
-          <div className="flex gap-12">
+          <div className="flex gap-14">
             <div>
-              <label className="block mb-2 text-md font-medium text-gray-800">
-                Skill Keywords:
+              <label className="block  text-md font-medium text-gray-800">
+                Skills:
                 <div className="input">
                 <input
                   type="text"
                   {...register("skillKeywords", { required: true })}
-                  placeholder="set theory, mathematics"
+                  placeholder=" Your skills"
                 /></div>
               </label>
             </div>
             <br />
             <div>
-              <label className="block mb-2 text-md font-medium text-gray-800">
+              <label className="block  text-md font-medium text-gray-800">
                 Preferred Location:
                 <div className="input"> <input
                   type="text"
                   {...register("preferredLocation", { required: true })}
-                  placeholder="Zurich and London"
+                  placeholder="Your Location"
                 /></div>
               </label>
             </div>
@@ -393,7 +396,7 @@ export function ProfilePublish() {
           >
             Upload to IPFS
           </button></div>
-        </form>
+        </form></div>
         {cid && <div>CID: {cid}</div>}
         {error && <div>Error: {error}</div>}
         {response && JSON.stringify(response)}
