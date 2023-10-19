@@ -59,8 +59,8 @@ export const ipfsDownload = async (cid: string): Promise<Resume> => {
         }
     };
 
-    const resume = await tryDownload("https://cloudflare-ipfs.com/ipfs")
-        || await tryDownload("https://w3s.link/ipfs")
+    const resume = await tryDownload("https://w3s.link/ipfs")
+        || await tryDownload("https://cloudflare-ipfs.com/ipfs")
         || await supabaseIPFSDownload(cidWithPath);
 
     if (!resume) throw new Error("Failed to download resume from all sources");
