@@ -25,6 +25,11 @@ function getListOfConnectionRequests(){
 }
 
 
+function getApprovedConList():string[] {
+  //@ts-ignore
+  return JSON.parse(localStorage.getItem("ApprovedConList")) || [""]
+}
+
 function getConReqListForUserApproval():string[] {
   //@ts-ignore
   return JSON.parse(localStorage.getItem("ConReqListForUserApproval")) || [""]
@@ -64,6 +69,22 @@ function addConReqToSpamList(key:string){
 }
 
 
+function getSpamList():string[]{
+  let laststate  = [];
+    const b = localStorage.getItem("ConReqSpamList")
+    try{
+      //@ts-ignore
+      if(b && b!.length>5)
+        laststate=JSON.parse(b);
+      return laststate;
+    }
+    catch(error){
+    console.log("🚀 ~ file: getSpamList()  JSON.parse(localStorage.getItem(ConReqSpamList)) failed  error:", error)
+    }
+    return laststate;
+
+}
+
 
 function addConToApprovedList(key:string){
 
@@ -81,8 +102,56 @@ function addConToApprovedList(key:string){
     laststate.push(key);
     localStorage.setItem("ApprovedConList",JSON.stringify(laststate));
   }
+  //check if the key is in any other list and remove it if it is. 
 
-    
+
+  removeKeyFromSpamList(key);
+  removeKeyFromWaitingList(key);
+
+}
+
+function removeKeyFromWaitingList(key:string){
+
+  key=key.toLocaleUpperCase();
+  let laststate  = [];
+    const b = localStorage.getItem("ConReqListForUserApproval")
+    try{
+      //@ts-ignore
+      if(b && b!.length>5)
+       laststate=JSON.parse(b);
+       
+    }
+    catch(error){
+    console.log("🚀 ~ file: removeKeyFromWaitingList()  error:", error)
+    }
+       //@ts-ignore
+    laststate= laststate.filter(item => item.toLocaleUpperCase() !== key);
+    let out = [ ...(new Set(laststate))]
+    localStorage.setItem("ConReqListForUserApproval",JSON.stringify(out));
+
+}
+
+
+
+function removeKeyFromSpamList(key:string){
+
+  key=key.toLocaleUpperCase();
+  let laststate  = [];
+    const b = localStorage.getItem("ConReqSpamList")
+    try{
+      //@ts-ignore
+      if(b && b!.length>5)
+       laststate=JSON.parse(b);
+       
+    }
+    catch(error){
+    console.log("🚀 ~ file:  removeKeyFromSpamList() failed  error:", error)
+    }
+       //@ts-ignore
+    laststate= laststate.filter(item => item.toLocaleUpperCase() !== key);
+    let out = [ ...(new Set(laststate))]
+    localStorage.setItem("ConReqSpamList",JSON.stringify(out));
+
 }
 
 function isConnectionApproved(peerAddress:string){
@@ -166,6 +235,7 @@ async function syncConversation(convo:any,supabase:any){
       console.log("🚀 ~ file: Connections.tsx:142 ~ getConStatus ~ error:", error)
       
     }
+    
   }
 
 
@@ -331,8 +401,10 @@ const Connections = () => {
 
 
 
-
+  let changeme = 1;
   const connectionForUserToApproveList =  getConReqListForUserApproval();
+  const connectionApprovedList =  getApprovedConList();
+  const connectionSpamList =  getSpamList();
   console.log("🚀 ~ file: Connections.tsx:312 ~ Connections ~ connectionForUserToApproveList:", connectionForUserToApproveList)
   
   const supabase = useContext(SupabaseContext);
@@ -351,6 +423,35 @@ const Connections = () => {
    
   };
 
+  const acceptClickHandler = (key:string) => {
+    return (event: React.MouseEvent) => {
+      addConToApprovedList(key)
+      changeme+=1;
+     event.preventDefault();
+    }
+  }
+
+  const rejectClickHandler = (key:string) => {
+    return (event: React.MouseEvent) => {
+      addConReqToSpamList(key)
+      changeme+=1;
+      event.preventDefault();
+    }
+  }
+
+  const simplergetConStatus =(key:string) =>{
+    let s ="";
+    //@ts-ignore
+    if( getConStatus(key,clientAddress)){
+       //@ts-ignore
+      s= getConStatus(key,clientAddress);
+
+      //@ts-ignore
+      return ( " connectionRequests30days="+s.connectionRequests30days+" requestAccouncedPublically="+s.requestAccouncedPublically+" peerTrustScore="+peerTrustScore+" gitcoinScore="+gitcoinScore )
+    }
+    return "";
+
+  }
 
 
   useEffect(() => {
@@ -453,13 +554,13 @@ const Connections = () => {
                           <strong>{item}</strong> is intiving you to
                           connect
                         </p>
-                        <button
+                        <button onClick={rejectClickHandler(item)}
                           className="text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 shadow-lg shadow-red-500/50 font-medium rounded-lg text-sm px-4 mb-4  text-center mr-2  h-[30px]"
                           type="submit"
                         >
                           Reject
                         </button>
-                        <button
+                        <button  onClick={acceptClickHandler(item)}
                           className="text-white mb-4 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-4 text-center mr-2  h-[30px]"
                           type="submit"
                         >
@@ -470,9 +571,7 @@ const Connections = () => {
                         <p className="text-gray-600 ml-2 font-sans">
                           Looking forward to connect{" "}
                         </p>
-                        <p className="absolute bottom-0 ml-2 text-gray-500 font-sans">
-                          Accept to connect
-                        </p>
+                         
                       </div>
                     </div>
                   </div>
@@ -480,9 +579,99 @@ const Connections = () => {
               );
             })}
           </ul>
+
+
         </div>
+
+
+
+        <div>
+          <h2 className="text-center font-sans text-[12px] font-bold mb-2">Spam Folder</h2>
+
+          <ul className="flex flex-row flex-wrap ">
+            {connectionSpamList.map((item,index) => {
+              //const itemstatus=getConStatus(item);
+              return (
+                <li key={item} className="">
+                
+                  <div className="flex gap-16 mx-8 card-2">
+                    <img
+                      className="rounded-full h-[40px] w-[40px]"
+                      src="https://avatars.githubusercontent.com/u/65860201?s=96&v=4"
+                      alt="profile-image"
+                    />
+                    <div>
+                      <div>
+                        <p className=" font-sans mb-2">
+                          <strong>{item}</strong>  
+                        </p>
+                        { simplergetConStatus(item)}
+                      
+                        <button  onClick={acceptClickHandler(item)}
+                          className="text-white mb-4 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-4 text-center mr-2  h-[30px]"
+                          type="submit"
+                        >
+                          Accept
+                        </button>
+                      </div>
+                    
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+
+
+        </div>
+
+
+
+        <div>
+          <h2 className="text-center font-sans text-[12px] font-bold mb-2">Accepted Connections</h2>
+
+          <ul className="flex flex-row flex-wrap ">
+            {connectionApprovedList.map((item,index) => {
+              //const itemstatus=getConStatus(item);
+              return (
+                <li key={item} className="">
+                
+                  <div className="flex gap-16 mx-8 card-2">
+                    <img
+                      className="rounded-full h-[40px] w-[40px]"
+                      src="https://avatars.githubusercontent.com/u/65860201?s=96&v=4"
+                      alt="profile-image"
+                    />
+                    <div>
+                      <div>
+                        <p className=" font-sans mb-2">
+                          <strong>{item}</strong>  
+                        </p>
+                        { simplergetConStatus(item)}
+                      
+                        <button onClick={rejectClickHandler(item)}
+                          className="text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 shadow-lg shadow-red-500/50 font-medium rounded-lg text-sm px-4 mb-4  text-center mr-2  h-[30px]"
+                          type="submit"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                    
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+
+
+        </div>
+
+
       </div>
+      <p className="text-white">{changeme}</p>
     </div>
+
   );
 };
 
