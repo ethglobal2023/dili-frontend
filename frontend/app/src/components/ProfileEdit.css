@@ -1,41 +1,47 @@
-
-
-.profile-edit-inputs {
-  display: grid;
-  margin-top: 40px;
-  gap: 20px;
-
-  label {
-    font-family: system-ui;
-    margin-bottom: -15px;
-  }
-
-  .edit-input {
-    width: 300px;
-    height: 40px;
-  }
+.input {
+  font-family: 'openSans', sans-serif;
+  margin: 1em 0 1em 0;
+  max-width: 190px;
+  position: relative;
 }
 
-.save-container {
-  display: flex;
-  justify-content: center;
-}
-
-.save-btn {
-  width: 300px;
-  height: 50px;
-  cursor: pointer;
-  background-color: #0073b1;
-  border-radius: 30px;
+.input input {
+  font-size: 100%;
+  padding: 0.8em;
   outline: none;
-  border: none;
-  font-family: system-ui;
-  font-weight: 600;
-  color: #ffffff;
-  font-size: 18px;
-  margin-top: 20px;
+  border: 2px solid rgb(141, 109, 255);
+  background-color: transparent;
+  border-radius: 20px;
+  width: fit-content;
 }
 
-.close-icon {
-  cursor: pointer;
+.input select {
+  font-size: 100%;
+  padding: 0.8em;
+  outline: none;
+  border: 2px solid rgb(141, 109, 255);
+  background-color: transparent;
+  border-radius: 20px;
+  width:  fit-content;
+}
+.input textarea {
+  font-size: 100%;
+  padding: 0.8em;
+  outline: none;
+  border: 2px solid rgb(141, 109, 255);
+  background-color: transparent;
+  border-radius: 20px;
+  width:  fit-content;
+}
+
+.input :is(input:focus, input:valid)~label {
+  transform: translateY(-50%) scale(.9);
+  margin: 0em;
+  margin-left: 1.3em;
+  padding: 0.4em;
+  background-color: #212121;
+}
+
+.inputGroup :is(input:focus, input:valid) {
+  border-color: rgb(37, 37, 211);
 }
