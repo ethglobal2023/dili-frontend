@@ -80,11 +80,11 @@ export const App: React.FC = () => {
     );
   };
   return (
-    <div className="  w-full h-[100vh] bg-[#f7f7f7] ">
+    <div className="  w-full h-[100vh] bg-[#f7f7f7]  ">
       <div className="InboxConversations">
         <BrowserRouter>
           {/*<SideBar />*/}
-          <div className="InboxConversations__list overflow-y-hidden border-r-[3px]">
+          <div className="InboxConversations__list overflow-y-hidden  border-r-[3px]">
             <Menu />
             <Routes>
               {["/", "/messages"].map((path, index) => {
@@ -147,13 +147,11 @@ export const App: React.FC = () => {
             <Route
               path="/admin"
               element={
-             
                 <EasConfigContextProvider>
-                     <RequireXMTPConnected>
-                  <AdminHome />
+                  <RequireXMTPConnected>
+                    <AdminHome />
                   </RequireXMTPConnected>
                 </EasConfigContextProvider>
-
               }
             />
             <Route

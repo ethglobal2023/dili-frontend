@@ -91,5 +91,6 @@ export type Resume = {
   preferredTitle: string;
   skill_keywords: string[];
   eoaAttestations: any[];
+  attestationData:any[]
   preferredLocation: string;
 };
