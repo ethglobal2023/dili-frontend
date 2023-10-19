@@ -86,9 +86,9 @@ const EmailLoginButton: React.FC<IEmailLoginButton> = ({
         // </button>
         <button
           onClick={() => setIsWalletModal(true)}
-          className="flex justify-center items-center border-2 rounded-xl px-2.5 gap-2 hover:scale-105 transition duration-200 py-1.5"
+          className="flex bg-white justify-center items-center  rounded-xl shadow-2xl  drop-shadow-2xl px-4 gap-2 hover:scale-105 transition duration-200 py-1.5"
         >
-          <Identicon string={truncatedAddress} size={32} />
+          <Identicon string={truncatedAddress} size={24} />
           <h1 className="font-semibold tracking-lighter text-[#25292e] text-base ">
             {truncatedAddress}
           </h1>
