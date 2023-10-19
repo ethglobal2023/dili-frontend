@@ -277,7 +277,7 @@ export default function ProfileCard() {
               fetchedProfile?.attestationData?.map(
                 (attestation: any, key: any) => {
                   const message = JSON.parse(attestation?.decodedDataJson);
-                  console.log("Attestaion Message:", message[0]?.value.value);
+                  console.log("Attestaion Message:", message[0]?.value?.value);
                   const unixTimestamp = attestation?.timeCreated;
                   const formattedDate = formatUnixTimestamp(unixTimestamp);
                   console.log(formattedDate);
@@ -302,7 +302,7 @@ export default function ProfileCard() {
                           </p>
                           <div>
                             <p className=" text-[16px] font-sans  text-gray-600 ">
-                              Message: {message[0]?.value.value}
+                              Message: {message[0]?.valu?.value}
                             </p>
                             <p className=" text-[16px] font-sans  text-gray-600 ">
                               Recipient:{" "}
