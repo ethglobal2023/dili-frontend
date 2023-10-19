@@ -8,6 +8,18 @@ import {Input} from "../../@/components/ui/input";
 import "./Search.css";
 import {useResumeCache} from "../contexts/FileCacheContext";
 import {loadCidIntoCache} from "../cache";
+import { Client, useClient } from "@xmtp/react-sdk";
+import { ethers } from "ethers";
+import axios from 'axios';
+
+
+import { useWallet } from "../hooks/useWallet";
+import { useWalletClient } from "wagmi";
+
+
+
+
+ 
 
 const getImageUrls = () => {
     const getImageURL = (gender: string, n: number) =>
@@ -31,18 +43,100 @@ type SearchForm = {
 };
 
 export const Search: FC = () => {
-        const {
-            register,
-            handleSubmit,
-            watch,
-            formState: {errors},
-            control,
-        } = useForm<SearchForm>({});
-        const supabase = useContext(SupabaseContext);
-        const [error, setError] = useState("");
-        const [data, setData] = useState<any[]>([]);
-        const imageUrls = getImageUrls();
-        const resumeCache = useResumeCache()
+
+
+
+    const {
+        register,
+        handleSubmit,
+        watch,
+        formState: {errors},
+        control,
+    } = useForm<SearchForm>({});
+    const supabase = useContext(SupabaseContext);
+    const [error, setError] = useState("");
+    const [data, setData] = useState<any[]>([]);
+    const imageUrls = getImageUrls();
+    const resumeCache = useResumeCache()
+    const { client } = useClient();
+    const { address } = useWallet();
+
+    const { data: walletClient } = useWalletClient();
+    console.log("useClient() xmptpppp: client?.address "+ client?.address)
+
+
+    //let clientPreferedEngine="159.203.132.121:3005/api/" //TODO change this to using standard settings 
+    let clientPreferedEngine= "localhost:3005/api/"
+
+    const constconnectReq = async(to:string) => {
+            const message = "connection_request_from_"+address+"_to_"+to+"_______random_salt_"+Math.random()+" "
+            console.log("🚀 ~ file: Search.tsx:47 ~ constconnectReq ~ client:", client)
+
+
+            if (!walletClient) throw new Error("Wallet client not initialized");
+
+            if (!client) throw new Error("xmtp client missing");
+
+            if ( address!==client?.address) throw new Error("xmtp client not equal to useWallet "+address+"!==="+client?.address);
+            console.log("🚀 ~ file: Search.tsx:81 ~ walletClient.signMessage() with address", address)
+
+            const connection_message_hash= ethers.sha256(ethers.toUtf8Bytes(message)).toString();
+
+            const signature = await walletClient.signMessage({
+                account: address,
+                message: connection_message_hash,
+              });
+
+        const url=  "http://"+clientPreferedEngine+'dili/announceconnectionrequest';
+          
+             //bookmark 
+             let scoreres = await axios({
+                method: 'post',
+                url: url,
+                data: {
+                  from: client?.address,
+                  request_hash: connection_message_hash,
+                  from_signature:signature
+                }
+              });
+
+            if(!client){
+                // TODO gotta push user to connect to xmtp first 
+                
+            }
+            let isOnNetwork = false;
+            try{
+            //@ts-ignore
+            
+            isOnNetwork = await client?.canMessage( to);
+            console.log("🚀 ~ file: Search.tsx:51 ~ constconnectReq ~ to:", to)
+            if(isOnNetwork){
+            const newConversation = await client?.conversations.newConversation(to);
+            //@ts-ignore
+            await newConversation.send(message);
+            console.log("YAY sent connection request via message "+message)
+            }
+            else{
+                console.error( "Can't COnnect user is not on XMTP ")
+            }
+        }
+        catch(error){
+            console.log("🚀 ~ file: Search.tsx:61 ~ constconnectReq ~ error:", error)
+            
+        }
+    }
+
+    const clickHandler = (to:string) => {
+        return (event: React.MouseEvent) => {
+          constconnectReq(to)
+          event.preventDefault();
+        }
+      }
+
+
+
+
+
 
         // Load the cache with resumes after searching
         useEffect(() => {
@@ -148,7 +242,7 @@ export const Search: FC = () => {
                                 <div className="flex flex-col">
                   <span className="text-xl">
                     {user.preferredname || user.address || "Anonymous User"}
-                  </span>
+                  </span>  <button onClick={clickHandler(user.address)}>Connect</button>
                                     <span className="text-sm text-gray-500 truncate w-72">
                     {user.preferredtitle?.trim()}
                   </span>
@@ -159,5 +253,5 @@ export const Search: FC = () => {
                 })}
             </div>
         );
-    }
-;
+    };
+ 
