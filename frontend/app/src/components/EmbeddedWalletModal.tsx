@@ -34,8 +34,8 @@ const EmbeddedWalletModal: React.FC<IEmbeddedWalletModal> = ({
   const ref = useRef<HTMLDivElement | null>(null);
   const [isCopied, setIsCopied] = useState(false);
   const truncatedAddress = truncateAddress(account?.address as string);
-  const balance = formatEther(data?.value!);
-  console.log("🚀 ~ file: EmbeddedWalletModal.tsx:38 ~ balance:", balance);
+  const balance = data && formatEther(data?.value!);
+  console.log("🚀 ~ file: EmbeddedWalletModal.tsx:38 ~ balance:", balance!);
   //   const { address, isConnected, isConnecting, isReconnecting, connector } =
   //     useAccount();
 
@@ -91,7 +91,9 @@ const EmbeddedWalletModal: React.FC<IEmbeddedWalletModal> = ({
             <h1 className="font-bold tracking-lighter text-[#25292e] text-[18px] ">
               {truncatedAddress}
             </h1>
-            <h1 className="font-semibold text-[#868989] ">{balance} ETH</h1>
+            <h1 className="font-semibold text-[#868989] ">
+              {balance ? balance : "0.0"} ETH
+            </h1>
           </div>
         </div>
         <div className="absolute bottom-4 w-full flex gap-8 justify-center">
