@@ -235,9 +235,15 @@ async function syncConversation(convo:any,supabase:any){
     console.log("🚀 ~ file: Connections.tsx:152 ~ syncConversation ~ clientAddress:", clientAddress)
     let localc = getLocalConvoSync(peerAddress,clientAddress)
     let newc={}
-    if(!localc){ //TODO remove true 
+    let clientReplied=false;
+    if(true || !localc){ //TODO remove true 
 
-      
+      let m5res = await convo.messages({limit:5,direction:2});
+      console.log("m5res=",m5res)
+      //@ts-ignore
+      clientReplied = m5res?.filter((a)=> a.senderAddress.toLocaleUpperCase()===clientAddress)?.length>0 ? true : false;
+      console.log("🚀 ~ file: Connections.tsx:245 ~ syncConversation ~ clientReplied:", clientReplied)
+
       let mres = await convo.messages({limit:1,direction:1}); //getting first message
       console.log("🚀 ~ file: App.tsx:78 ~ syncConversation ~ mres:", mres)
       const firstmsg =   ( mres&&mres.length>0&&mres[0].content &&mres[0].content.content )? xmsgcontent(mres[0]) : "";
@@ -360,7 +366,15 @@ async function syncConversation(convo:any,supabase:any){
       console.log("🚀 ~ file: App.tsx:68 ~ syncConversation ~ newc:", newc)
 
       //TODO change the below based on user settings 
-      if( ( (peerTrustScore>1||gitcoinScore>3) && requestAccouncedPublically && connectionRequests30days<400 )  || (peerTrustScore>24&&gitcoinScore>20) ){
+      if( clientReplied){
+          addConToApprovedList(peerAddress);
+          const userResponse="replied";
+          //@ts-ignore
+          newc.userResponse=userResponse;
+           //@ts-ignore
+          newc.autoFilterState="ok-user-replied"
+      }
+      else if( ( (peerTrustScore>1||gitcoinScore>3) && requestAccouncedPublically && connectionRequests30days<400 )  || (peerTrustScore>24&&gitcoinScore>20) ){
         addConReqListForUserApproval(peerAddress);
         //@ts-ignore
         newc.autoFilterState="ok"
@@ -428,7 +442,7 @@ const Connections = () => {
     const allconvo = await client!.conversations.list();
     console.log("🚀 ~ file: App.tsx:32 ~ getMessages ~ allconvo:", allconvo)
 
-    if(allconvo && allconvo.length>1)
+    if(allconvo && allconvo.length>0)
       await syncConversationlist(allconvo,supabase);
  
    
