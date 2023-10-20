@@ -37,6 +37,23 @@ export default function ProfileCard() {
   //@Sakshi, this is the logic for fetching the resume from IPFS
   const [error, setError] = useState("");
   const [fetchedProfile, setFetchedProfile] = useState<Resume>();
+  const [indexedUser, setIndexedUser] = useState<IndexedUser[]>();
+
+  useEffect(() => {
+    const fetchUserData = async () => {
+      try {
+        const response = await axios.get(`https://api.web3.bio/profile/${cid}`);
+        const user = response.data;
+        console.log("user", user);
+        setIndexedUser(user);
+      } catch (error) {
+        console.error("Error fetching user data:", error);
+      }
+    };
+
+    fetchUserData();
+  }, []);
+
   useEffect(() => {
     const fetchProfile = async () => {
       try {

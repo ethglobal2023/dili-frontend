@@ -18,7 +18,7 @@ export type IndexedUser = {
   description: string | null;
   location: string | null;
   header: string | null;
-  error: string | null;
+  error?: string | null;
   links: {
     [key: string]: {
       link: string;
@@ -91,6 +91,6 @@ export type Resume = {
   preferredTitle: string;
   skillKeywords: string[];
   eoaAttestations: any[];
-  attestationData:any[]
+  attestationData: any[];
   preferredLocation: string;
 };

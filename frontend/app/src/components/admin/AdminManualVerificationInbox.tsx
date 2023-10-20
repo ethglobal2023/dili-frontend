@@ -7,6 +7,7 @@ import { Database } from "../../__generated__/supabase-types";
 import { MessageWithViemSignature } from "./types";
 import { useWalletClient } from "wagmi";
 import { useWallet } from "../../hooks/useWallet";
+import useEthersWalletClient from "../../hooks/useEthersWalletClient";
 
 type VerificationRequest =
   Database["public"]["Tables"]["manual_review_inbox"]["Row"];
@@ -61,26 +62,27 @@ const InboxRow: React.FC<{ account: string; cid: string }> = ({
   const [jsonResponse, setJsonResponse] = useState("");
   const [error, setError] = useState("");
   const { address } = useWallet();
-  const { data: walletClient } = useWalletClient();
+  // const { data: walletClient } = useWalletClient();
+  const { data: walletClient } = useEthersWalletClient();
   const {
     handleSubmit,
     formState: { errors },
   } = useForm<{}>();
 
   const onConfirmManualVerificationRequest: SubmitHandler<{}> = async (
-    data,
+    data
   ) => {
     try {
       if (!account || account.length === 0) {
         setError(
-          "You must be connected w/ a browser wallet to request verification",
+          "You must be connected w/ a browser wallet to request verification"
         );
         return;
       }
 
       if (!walletClient) {
         setError(
-          "You must be connected w/ a browser wallet to request verification",
+          "You must be connected w/ a browser wallet to request verification"
         );
         return;
       }
@@ -91,10 +93,7 @@ const InboxRow: React.FC<{ account: string; cid: string }> = ({
         account: account?.toLowerCase(),
         cid,
       };
-      const signature = await walletClient.signMessage({
-        account: address,
-        message: JSON.stringify(message),
-      });
+      const signature = await walletClient.signMessage(JSON.stringify(message));
 
       const requestBody: MessageWithViemSignature<ConfirmVerificationMessage> =
         {
@@ -112,7 +111,7 @@ const InboxRow: React.FC<{ account: string; cid: string }> = ({
 
       const res = await fetch(
         `http://localhost:3005/eas/confirm-verification`,
-        requestOptions,
+        requestOptions
       ).then((response) => response.json());
       setJsonResponse(res);
       console.log("Finished confirming verification", res);

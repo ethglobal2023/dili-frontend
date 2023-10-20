@@ -6,8 +6,8 @@ import {
   Controller,
 } from "react-hook-form";
 import "./ProfileEdit.css";
-import { ToastContainer, toast } from 'react-toastify';
-import 'react-toastify/dist/ReactToastify.css';
+import { ToastContainer, toast } from "react-toastify";
+import "react-toastify/dist/ReactToastify.css";
 import { IoMdArrowBack } from "react-icons/io";
 import { BACKEND_URL } from "./admin/EASConfigContext";
 import { MessageWithViemSignature } from "./admin/types";
@@ -21,6 +21,7 @@ import { SupabaseContext } from "../contexts/SupabaseContext";
 import { useResumeCache } from "../contexts/FileCacheContext";
 import { ipfsDownload } from "../ipfs";
 import Loading from "./Loading";
+import useEthersWalletClient from "../hooks/useEthersWalletClient";
 type PublishResumeMessage = {
   account: string;
   resume: string;
@@ -54,11 +55,12 @@ export function ProfilePublish() {
   const [showCidData,setShowCidData] = useState(false)
   const [attestationDatat, setAttestationsData] = useState();
   const { address } = useWallet();
-  const { data: walletClient } = useWalletClient();
+  // const { data: walletClient } = useWalletClient();
+  const { data: walletClient } = useEthersWalletClient();
   const navigate = useNavigate();
-  const resumeCache = useResumeCache()
+  const resumeCache = useResumeCache();
   const supabase = useContext(SupabaseContext);
-  const [loading,setLoading]=useState(false)
+  const [loading, setLoading] = useState(false);
   console.log(address);
   const {
     register,
@@ -77,7 +79,7 @@ export function ProfilePublish() {
       );
       console.log("Attestation Data", response.data);
       setAttestationsData(response.data);
-      setLoading(false)
+      setLoading(false);
     } catch (error) {
       console.error("Error fetching attestation data data:", error);
     }
@@ -105,7 +107,9 @@ export function ProfilePublish() {
     setLoading(true)
     try {
       if (!walletClient) throw new Error("Wallet client not initialized");
-      if (!address) throw new Error("Wallet address not initialized");
+      const walletAddress = (await walletClient.getAddress()).toString();
+
+      if (!walletAddress) throw new Error("Wallet address not initialized");
       const formData = {
         firstName: data.firstName,
         lastName: data.lastName,
@@ -120,14 +124,16 @@ export function ProfilePublish() {
       };
       console.log(JSON.stringify(formData));
       const message: PublishResumeMessage = {
-        account: address?.toLowerCase(),
+        account: walletAddress?.toLowerCase(),
         resume: JSON.stringify(formData),
       };
 
-      const signature = await walletClient.signMessage({
-        account: address,
-        message: JSON.stringify(message),
-      });
+      const signature = await walletClient.signMessage(JSON.stringify(message));
+
+      // const signature = await walletClient.signMessage({
+      //   account: address,
+      //   message: JSON.stringify(message),
+      // });
 
       const requestBody: MessageWithViemSignature<PublishResumeMessage> = {
         message,
@@ -223,22 +229,23 @@ export function ProfilePublish() {
             </div>
           </div>
 
-          <br />
-          <div className="flex gap-24">
-            <div className="flex flex-col w-[200px]">
-              {" "}
-              <label
-                htmlFor="languages"
-                className="block  text-md font-medium text-gray-800"
-              >
-                Languages
-              </label> <div className="input">
-              <input
-              {...register("language", { required: true })}
-              placeholder="Languages you speak"
-              />
-              </div>
-            </div>
+              <br />
+              <div className="flex gap-24">
+                <div className="flex flex-col w-[200px]">
+                  {" "}
+                  <label
+                    htmlFor="languages"
+                    className="block  text-md font-medium text-gray-800"
+                  >
+                    Languages
+                  </label>{" "}
+                  <div className="input">
+                    <input
+                      {...register("language", { required: true })}
+                      placeholder="Languages you speak"
+                    />
+                  </div>
+                </div>
 
             <div className="flex flex-col w-[200px]">
               <label className="block  text-md font-medium text-gray-800">
@@ -403,18 +410,18 @@ export function ProfilePublish() {
         {response && JSON.stringify(response)}
       </div>)}
       <ToastContainer
-position="bottom-right"
-autoClose={5000}
-hideProgressBar={false}
-newestOnTop={false}
-closeOnClick
-rtl={false}
-pauseOnFocusLoss
-draggable
-pauseOnHover
-theme="light"
-/>
-<ToastContainer />
+        position="bottom-right"
+        autoClose={5000}
+        hideProgressBar={false}
+        newestOnTop={false}
+        closeOnClick
+        rtl={false}
+        pauseOnFocusLoss
+        draggable
+        pauseOnHover
+        theme="light"
+      />
+      <ToastContainer />
     </>
   );
 }

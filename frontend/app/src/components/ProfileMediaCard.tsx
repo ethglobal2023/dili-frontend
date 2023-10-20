@@ -7,7 +7,7 @@ import { useContext, useEffect, useState } from "react";
 import { SupabaseContext } from "../contexts/SupabaseContext";
 import { useSignMessage, useWalletClient } from "wagmi";
 import { MessageWithViemSignature } from "./admin/types";
-
+import useEthersWalletClient from "../hooks/useEthersWalletClient";
 
 type RequestVerificationMessage = {
   account: string;
@@ -25,8 +25,9 @@ export const ProfileMediaCard: React.FC<{
   cid: string;
   mediaType: "conference_talk" | "publication" | "interview"; //change validation in backend/eas/request-manual-verification.ts to add new types
 }> = ({ cid, mediaType }) => {
-  const { address } = useWallet();
-  const {data: walletClient} = useWalletClient();
+  // const { address } = useWallet();
+  // const {data: walletClient} = useWalletClient();
+  const { data: walletClient } = useEthersWalletClient();
   const [loadingVerificationRequest, setLoadingVerificationRequest] =
     useState(false);
   const [verificationStatus, setVerificationStatus] =
@@ -42,6 +43,8 @@ export const ProfileMediaCard: React.FC<{
 
   useEffect(() => {
     const fetchData = async () => {
+      const address = await walletClient?.getAddress().toString();
+
       const { data, error } = await supabase
         .from("manual_review_inbox")
         .select("*")
@@ -68,9 +71,13 @@ export const ProfileMediaCard: React.FC<{
   }, []);
 
   const onSubmitManualVerificationRequest: SubmitHandler<{}> = async (data) => {
-    if (!walletClient || !address || address.length === 0){
-      setError("You must be connected w/ a browser wallet to request verification");
-      return
+    const address = await walletClient?.getAddress().toString();
+
+    if (!walletClient || !address || address.length === 0) {
+      setError(
+        "You must be connected w/ a browser wallet to request verification"
+      );
+      return;
     }
     try {
       setLoadingVerificationRequest(true);
@@ -80,12 +87,10 @@ export const ProfileMediaCard: React.FC<{
         mediaType,
       };
 
-      const signature = await walletClient.signMessage({
-        account: address,
-        message: JSON.stringify(message),
-      });
+      const signature = await walletClient.signMessage(JSON.stringify(message));
 
-      const requestBody: MessageWithViemSignature<RequestVerificationMessage> = {message, signature}
+      const requestBody: MessageWithViemSignature<RequestVerificationMessage> =
+        { message, signature };
 
       const requestOptions: RequestInit = {
         method: "POST",
@@ -96,15 +101,15 @@ export const ProfileMediaCard: React.FC<{
       console.log(
         "Requesting verification with",
         requestBody,
-        ` to ${BACKEND_URL}/eas/request-verification`,
+        ` to ${BACKEND_URL}/eas/request-verification`
       );
 
       const res = await fetch(
         `${BACKEND_URL}/eas/request-verification`,
-        requestOptions,
+        requestOptions
       ).then((response) => response.json());
       setJsonResponse(res);
-      setError("")
+      setError("");
       console.log("Finished requesting verification", res);
     } catch (e: any) {
       console.log("Failed to request veification", e);
