@@ -1,5 +1,5 @@
 import "./Menu.css";
-import React, { FC, PropsWithChildren, useState } from "react";
+import React, { FC, PropsWithChildren, useState, useEffect } from "react";
 import { IconButton, Tooltip } from "@radix-ui/themes";
 import { Link, Route, Routes } from "react-router-dom";
 // Alt for messages:
@@ -14,16 +14,14 @@ import { RiAdminLine, RiMessage2Line } from "react-icons/ri";
 import { IoIosNotificationsOutline } from "react-icons/io";
 import { getConReqListForUserApproval } from "./Connections";
 
-const MenuIcon: FC<PropsWithChildren<{ tooltip: string; link: string }>> = ({
-  tooltip,
-  link,
-  children,
-}) => {
+const MenuIcon: FC<
+  PropsWithChildren<{ tooltip: string; link: string; additionalClass?: string }>
+> = ({ tooltip, link, children }) => {
   return (
     <Tooltip
       content={tooltip}
       side={"bottom"}
-      className={"bg-white text-gray-600"}
+      className={`bg-white text-gray-600 `}
     >
       <Link className="menu-button" to={link}>
         <IconButton className="sidebar-buttons">{children}</IconButton>
@@ -32,11 +30,13 @@ const MenuIcon: FC<PropsWithChildren<{ tooltip: string; link: string }>> = ({
   );
 };
 export const Menu = () => {
+  const [approveListCnt, setApproveListCnt] = useState(0);
 
-  
- 
-  //const [approvelistCnt, setapprovelistCnt] = useState(0);
-  //setapprovelistCnt(getConReqListForUserApproval().length)
+  useEffect(() => {
+    const requests = getConReqListForUserApproval();
+    console.log("🚀 ~ file: Menu.tsx:37 ~ useEffect ~ requests:", requests);
+    setApproveListCnt(requests.length);
+  }, []);
 
   return (
     <>
@@ -58,11 +58,18 @@ export const Menu = () => {
         <MenuIcon tooltip={"Messages"} link={"/messages"}>
           <RiMessage2Line className={"menu-icon"} />
         </MenuIcon>
-        
+
         <MenuIcon tooltip={"Connections"} link={"/connections"}>
+          {/* <IoIosNotificationsOutline
+            className={
+              "menu-icon absolute left-0 top-0 outline-red-500 outline-1 outline-dashed "
+            }
+          /> */}
+          {approveListCnt && approveListCnt > 1 && (
+            <div className="w-1.5 h-1.5 relative left-4  bottom-2 bg-red-800 rounded-full"></div>
+          )}
           <AiOutlineUsergroupAdd className={"menu-icon"} />
         </MenuIcon>
-        <IoIosNotificationsOutline className={"menu-icon absolute left-0 top-0 outline-red-500 outline-1 outline-dashed "}/>
         <MenuIcon tooltip={"My Profile"} link={"/profile/self"}>
           <AiOutlineUser className={"menu-icon"} />
         </MenuIcon>

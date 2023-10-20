@@ -163,11 +163,6 @@ export function ProfileEdit() {
         resume: JSON.stringify(formData),
       };
 
-      // const txMessage = JSON.stringify({
-      //   account: walletClient?.getAddress(),
-      //   message: JSON.stringify(message),
-      // });
-
       const signature = await walletClient!.signMessage(
         JSON.stringify(message)
       );
