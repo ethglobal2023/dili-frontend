@@ -1,6 +1,12 @@
 import "./Menu.css";
 import React, { FC, PropsWithChildren, useState, useEffect } from "react";
-import { IconButton, Tooltip } from "@radix-ui/themes";
+import { IconButton } from "@radix-ui/themes";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../../@/components/ui/tooltip";
 import { Link, Route, Routes } from "react-router-dom";
 // Alt for messages:
 import {
@@ -18,15 +24,18 @@ const MenuIcon: FC<
   PropsWithChildren<{ tooltip: string; link: string; additionalClass?: string }>
 > = ({ tooltip, link, children }) => {
   return (
-    <Tooltip
-      content={tooltip}
-      side={"bottom"}
-      className={`bg-white text-gray-600 `}
-    >
-      <Link className="menu-button" to={link}>
-        <IconButton className="sidebar-buttons">{children}</IconButton>
-      </Link>
-    </Tooltip>
+    <TooltipProvider>
+      <Tooltip delayDuration={10}>
+        <TooltipTrigger asChild>
+          <Link className="menu-button" to={link}>
+            <IconButton className="sidebar-buttons">{children}</IconButton>
+          </Link>
+        </TooltipTrigger>
+        <TooltipContent side="bottom">
+          <p>{tooltip}</p>
+        </TooltipContent>
+      </Tooltip>
+    </TooltipProvider>
   );
 };
 export const Menu = () => {
@@ -73,6 +82,7 @@ export const Menu = () => {
         <MenuIcon tooltip={"My Profile"} link={"/profile/self"}>
           <AiOutlineUser className={"menu-icon"} />
         </MenuIcon>
+
         <MenuIcon tooltip={"Settings"} link={"/settings"}>
           <FiSettings className={"menu-icon"} />
         </MenuIcon>
