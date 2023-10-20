@@ -41,6 +41,86 @@ type SearchForm = {
   searchTerm: string;
 };
 
+export const clickHandler = (to: string, walletClient: any, client: any) => {
+  return (event: React.MouseEvent) => {
+    constconnectReq(to, walletClient, client);
+    event.preventDefault();
+  };
+};
+let clientPreferedEngine = "localhost:3005/api/";
+
+const constconnectReq = async (to: string, walletClient: any, client: any) => {
+  const address = (await walletClient.getAddress()).toString();
+
+  const message =
+    "connection_request_from_" +
+    address +
+    "_to_" +
+    to +
+    "_______random_salt_" +
+    Math.random() +
+    " ";
+  console.log("🚀 ~ file: Search.tsx:47 ~ constconnectReq ~ client:", client);
+
+  if (!walletClient) throw new Error("Wallet client not initialized");
+
+  if (!client) throw new Error("xmtp client missing");
+
+  if (address !== client?.address)
+    throw new Error(
+      "xmtp client not equal to useWallet " + address + "!===" + client?.address
+    );
+  console.log(
+    "🚀 ~ file: Search.tsx:81 ~ walletClient.signMessage() with address",
+    address
+  );
+
+  const connection_message_hash = ethers
+    .sha256(ethers.toUtf8Bytes(message))
+    .toString();
+
+  // const signature = await walletClient.signMessage({
+  //     account: address,
+  //     message: connection_message_hash,
+  //   });
+  const signature = await walletClient?.signMessage(connection_message_hash);
+
+  const url =
+    "http://" + clientPreferedEngine + "dili/announceconnectionrequest";
+
+  //bookmark
+  let scoreres = await axios({
+    method: "post",
+    url: url,
+    data: {
+      from: client?.address,
+      request_hash: connection_message_hash,
+      from_signature: signature,
+    },
+  });
+
+  if (!client) {
+    // TODO gotta push user to connect to xmtp first
+  }
+  let isOnNetwork = false;
+  try {
+    //@ts-ignore
+
+    isOnNetwork = await client?.canMessage(to);
+    console.log("🚀 ~ file: Search.tsx:51 ~ constconnectReq ~ to:", to);
+    if (isOnNetwork) {
+      const newConversation = await client?.conversations.newConversation(to);
+      //@ts-ignore
+      await newConversation.send(message);
+      console.log("YAY sent connection request via message " + message);
+    } else {
+      console.error("Can't COnnect user is not on XMTP ");
+    }
+  } catch (error) {
+    console.log("🚀 ~ file: Search.tsx:61 ~ constconnectReq ~ error:", error);
+  }
+};
+
 export const Search: FC = () => {
   const {
     register,
@@ -62,89 +142,6 @@ export const Search: FC = () => {
   console.log("useClient() xmptpppp: client?.address " + client?.address);
 
   //let clientPreferedEngine="159.203.132.121:3005/api/" //TODO change this to using standard settings
-  let clientPreferedEngine = "localhost:3005/api/";
-
-  const constconnectReq = async (to: string) => {
-    const address = (await walletClient.getAddress()).toString();
-
-    const message =
-      "connection_request_from_" +
-      address +
-      "_to_" +
-      to +
-      "_______random_salt_" +
-      Math.random() +
-      " ";
-    console.log("🚀 ~ file: Search.tsx:47 ~ constconnectReq ~ client:", client);
-
-    if (!walletClient) throw new Error("Wallet client not initialized");
-
-    if (!client) throw new Error("xmtp client missing");
-
-    if (address !== client?.address)
-      throw new Error(
-        "xmtp client not equal to useWallet " +
-          address +
-          "!===" +
-          client?.address
-      );
-    console.log(
-      "🚀 ~ file: Search.tsx:81 ~ walletClient.signMessage() with address",
-      address
-    );
-
-    const connection_message_hash = ethers
-      .sha256(ethers.toUtf8Bytes(message))
-      .toString();
-
-    // const signature = await walletClient.signMessage({
-    //     account: address,
-    //     message: connection_message_hash,
-    //   });
-    const signature = await walletClient?.signMessage(connection_message_hash);
-
-    const url =
-      "http://" + clientPreferedEngine + "dili/announceconnectionrequest";
-
-    //bookmark
-    let scoreres = await axios({
-      method: "post",
-      url: url,
-      data: {
-        from: client?.address,
-        request_hash: connection_message_hash,
-        from_signature: signature,
-      },
-    });
-
-    if (!client) {
-      // TODO gotta push user to connect to xmtp first
-    }
-    let isOnNetwork = false;
-    try {
-      //@ts-ignore
-
-      isOnNetwork = await client?.canMessage(to);
-      console.log("🚀 ~ file: Search.tsx:51 ~ constconnectReq ~ to:", to);
-      if (isOnNetwork) {
-        const newConversation = await client?.conversations.newConversation(to);
-        //@ts-ignore
-        await newConversation.send(message);
-        console.log("YAY sent connection request via message " + message);
-      } else {
-        console.error("Can't COnnect user is not on XMTP ");
-      }
-    } catch (error) {
-      console.log("🚀 ~ file: Search.tsx:61 ~ constconnectReq ~ error:", error);
-    }
-  };
-
-  const clickHandler = (to: string) => {
-    return (event: React.MouseEvent) => {
-      constconnectReq(to);
-      event.preventDefault();
-    };
-  };
 
   // Load the cache with resumes after searching
   useEffect(() => {
@@ -194,8 +191,8 @@ export const Search: FC = () => {
                   json->"cid"`
       )
       .textSearch("text ", term)
-      .eq('on_xmtp','true')
-      .order('trust_score', { ascending: false });
+      .eq("on_xmtp", "true")
+      .order("trust_score", { ascending: false });
 
     //TODO Make this search more robust
     console.log("results: ", results);
@@ -222,9 +219,7 @@ export const Search: FC = () => {
             key={user.pk}
             className={`
             overflow-hidden
-            ${
-                "bg-white"
-            }
+            ${"bg-white"}
             rounded
             w-96 
             shadow-lg 
@@ -241,30 +236,34 @@ export const Search: FC = () => {
                 className={`flex 
                   items-center 
                   space-x-4
-                  ${
-                     "bg-white"
-                  }
+                  ${"bg-white"}
                   `}
                 to={`/profile/${user.pk}`}
               >
                 <Avatar className="w-14 h-14">
-                  
-                                        <AvatarImage
-                                            src={user.profileImage || randomImage}
-                                            sizes={""}
-                                        />
-                    
+                  <AvatarImage
+                    src={user.profileImage || randomImage}
+                    sizes={""}
+                  />
+
                   <AvatarFallback>CN</AvatarFallback>
                 </Avatar>
               </Link>
-              <div className="flex flex-col">
-                <span className="text-xl">
-                  {user.preferredname || user.address || "Anonymous User"}
-                </span>{" "}
-                <button onClick={clickHandler(user.address)}>Connect</button>
-                <span className="text-sm text-gray-500 truncate w-72">
-                  {user.preferredtitle?.trim()}
-                </span>
+              <div className="flex ">
+                <div className="flex flex-col w-1/2">
+                  <span className="text-xl tracking-tighter">
+                    {user.preferredname || user.address || "Anonymous User"}
+                  </span>{" "}
+                  <span className="text-sm tracking-tight text-gray-500 truncate w-full">
+                    {user.preferredtitle?.trim()}
+                  </span>
+                </div>
+                <button
+                  onClick={clickHandler(user.address, walletClient, client)}
+                  className="px-4 w-fit mt-1 h-fit hover:scale-105 transition duration-200 text-lg rounded-xl font-semibold tracking-tighter bg-[#0e76fd] text-white py-1.5"
+                >
+                  Connect
+                </button>
               </div>
             </div>
           </Card>

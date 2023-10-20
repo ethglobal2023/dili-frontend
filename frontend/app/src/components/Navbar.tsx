@@ -20,17 +20,19 @@ const Navbar = () => {
       <div className="container mx-auto">
         <div className="flex justify-between p-4 ">
           <a href="/" className="flex">
-            <img
+            {/* <img
               src="https://flowbite.com/docs/images/logo.svg"
               className="h-8 mr-3"
               alt="Logo"
-            />
-            <span className="text-2xl font-semibold whitespace-nowrap">
+            /> */}
+            <span className="text-2xl tracking-tighter font-semibold whitespace-nowrap">
               Decentralized LinkedIn
             </span>
           </a>
           <div className="flex gap-2 ml-auto">
-            {!isSignedIn && <ConnectButton showBalance={false} />}
+            {!isSignedIn && (
+              <ConnectButton chainStatus={"none"} showBalance={false} />
+            )}
 
             {!isConnected && (
               <EmailLoginButton

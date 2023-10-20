@@ -10,6 +10,7 @@ import { wipeKeys } from "../utils/XMTPHelpers";
 import EmbeddedWalletModal, { truncateAddress } from "./EmbeddedWalletModal";
 //@ts-ignore
 import Identicon from "react-identicons";
+import { RiArrowDropDownLine } from "react-icons/ri";
 
 interface IEmailLoginButton {
   setIsOpen: (val: boolean) => void;
@@ -86,16 +87,17 @@ const EmailLoginButton: React.FC<IEmailLoginButton> = ({
         // </button>
         <button
           onClick={() => setIsWalletModal(true)}
-          className="flex bg-white justify-center items-center  rounded-xl shadow-2xl  drop-shadow-2xl px-4 gap-2 hover:scale-105 transition duration-200 py-1.5"
+          className="flex bg-white justify-center items-center  rounded-xl shadow-xl drop-shadow-md   px-4 gap-2 hover:scale-105 transition duration-200 py-1.5"
         >
           <Identicon string={truncatedAddress} size={24} />
-          <h1 className="font-semibold tracking-lighter text-[#25292e] text-base ">
+          <h1 className="font-bold tracking-lighter text-[#25292e] text-base ">
             {truncatedAddress}
           </h1>
+          <RiArrowDropDownLine className="-ml-2 w-8 h-8" />
         </button>
       ) : (
         <button
-          className="px-4 hover:scale-105 transition duration-200 text-lg rounded-xl font-semibold tracking-tighter bg-[#0e76fd] text-white py-1.5"
+          className="px-4 hover:scale-105 transition duration-200 text-base  rounded-xl font-bold tracking-tighter bg-[#0e76fd] text-white py-1.5"
           onClick={() => setIsOpen(true)}
         >
           Login with Email

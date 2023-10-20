@@ -74,7 +74,7 @@ export const App: React.FC = () => {
         className={"bg-white text-gray-600"}
       >
         <Link to={link} className={"menu-link"}>
-          <IconButton>{children}</IconButton>
+          <IconButton className="border">{children}</IconButton>
         </Link>
       </Tooltip>
     );

@@ -10,6 +10,7 @@ import { Wallet } from "ethers";
 import { createWalletClient, custom, http } from "viem";
 import { mainnet } from "viem/chains";
 import LoginWithEmail from "./LoginWithEmail";
+import Hero from "./Hero";
 
 export const RequireWalletConnected: FC<PropsWithChildren> = ({ children }) => {
   const { address, isConnected, chain, walletClient, isSignedIn } = useWallet();
@@ -35,7 +36,8 @@ export const RequireWalletConnected: FC<PropsWithChildren> = ({ children }) => {
   if (!isConnected && !isSignedIn) {
     return (
       <div className=" flex w-screen h-[80vh] justify-center items-center ">
-        <h1 className="text-xl">Please connect a wallet to use the app</h1>
+        {/* <h1 className="text-xl">Please connect a wallet to use the app</h1> */}
+        <Hero />
       </div>
     );
   } else {

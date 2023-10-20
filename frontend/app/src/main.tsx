@@ -5,6 +5,8 @@ import "@rainbow-me/rainbowkit/styles.css";
 import {
   connectorsForWallets,
   RainbowKitProvider,
+  darkTheme,
+  lightTheme,
 } from "@rainbow-me/rainbowkit";
 import {
   coinbaseWallet,
@@ -86,7 +88,12 @@ const resumeCache = new FileCache<Resume & { expiry: number }>();
 createRoot(document.getElementById("root") as HTMLElement).render(
   <Theme>
     <WagmiConfig config={wagmiConfig}>
-      <RainbowKitProvider chains={chains}>
+      <RainbowKitProvider
+        theme={lightTheme({
+          fontStack: "rounded",
+        })}
+        chains={chains}
+      >
         <ResumeCache.Provider value={resumeCache}>
           <StrictMode>
             <SupabaseProvider>
