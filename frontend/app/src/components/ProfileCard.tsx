@@ -9,10 +9,14 @@ import "./App.css";
 import { useWallet } from "../hooks/useWallet";
 import { SupabaseContext } from "../contexts/SupabaseContext";
 import { useResumeCache } from "../contexts/FileCacheContext";
+// import { useWallet } from "../hooks/useWallet";
+// import { SupabaseContext } from "../contexts/SupabaseContext";
+// import { useResumeCache } from "../contexts/FileCacheContext";
 import axios from "axios";
 import SocialBadge from "./SocialBadge";
 import Loading from "./Loading";
 import Avatar, { genConfig } from "react-nice-avatar";
+// import Avatar, { genConfig } from "react-nice-avatar";
 export default function ProfileCard() {
   const { cid } = useParams();
   const navigate = useNavigate();
@@ -24,9 +28,11 @@ export default function ProfileCard() {
   const supabase = useContext(SupabaseContext);
   const resumeCache = useResumeCache();
 
+
   const getImage = (event: any) => {
     setCurrentImage(event.target.files[0]);
   };
+
 
   //@Sakshi, this is the logic for fetching the resume from IPFS
   const [error, setError] = useState("");
@@ -39,6 +45,7 @@ export default function ProfileCard() {
 
         if (!stageCid) {
           console.log("No cid provided");
+          setLoading(false);
           return;
         }
         if (stageCid === "self") {
@@ -48,6 +55,7 @@ export default function ProfileCard() {
           );
           if (!walletAddress) {
             console.log("No wallet, nor cid provided to profile card");
+            setLoading(false);
             return;
           }
           const { data } = await supabase
@@ -119,6 +127,7 @@ export default function ProfileCard() {
   if (fetchedProfile) {
     config = genConfig(fetchedProfile?.firstName + fetchedProfile?.lastName);
   }
+
 
   return (
     <>

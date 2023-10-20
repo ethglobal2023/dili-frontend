@@ -1,5 +1,5 @@
 import "./Menu.css";
-import React, { FC, PropsWithChildren } from "react";
+import React, { FC, PropsWithChildren, useState } from "react";
 import { IconButton, Tooltip } from "@radix-ui/themes";
 import { Link, Route, Routes } from "react-router-dom";
 // Alt for messages:
@@ -11,6 +11,8 @@ import {
 } from "react-icons/ai";
 import { FiSettings } from "react-icons/fi";
 import { RiAdminLine, RiMessage2Line } from "react-icons/ri";
+import { IoIosNotificationsOutline } from "react-icons/io";
+import { getConReqListForUserApproval } from "./Connections";
 
 const MenuIcon: FC<PropsWithChildren<{ tooltip: string; link: string }>> = ({
   tooltip,
@@ -30,6 +32,12 @@ const MenuIcon: FC<PropsWithChildren<{ tooltip: string; link: string }>> = ({
   );
 };
 export const Menu = () => {
+
+  
+ 
+  //const [approvelistCnt, setapprovelistCnt] = useState(0);
+  //setapprovelistCnt(getConReqListForUserApproval().length)
+
   return (
     <>
       <div className="font-bold text-center text-xl p-4">
@@ -50,9 +58,11 @@ export const Menu = () => {
         <MenuIcon tooltip={"Messages"} link={"/messages"}>
           <RiMessage2Line className={"menu-icon"} />
         </MenuIcon>
+        
         <MenuIcon tooltip={"Connections"} link={"/connections"}>
           <AiOutlineUsergroupAdd className={"menu-icon"} />
         </MenuIcon>
+        <IoIosNotificationsOutline className={"menu-icon absolute left-0 top-0 outline-red-500 outline-1 outline-dashed "}/>
         <MenuIcon tooltip={"My Profile"} link={"/profile/self"}>
           <AiOutlineUser className={"menu-icon"} />
         </MenuIcon>

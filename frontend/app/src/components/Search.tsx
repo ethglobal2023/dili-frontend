@@ -232,10 +232,12 @@ export const Search: FC = () => {
                                     to={`/profile/${user.pk}`}
                                 >
                                     <Avatar className="w-14 h-14">
+                                        {/* 
                                         <AvatarImage
                                             src={user.profileImage || randomImage}
                                             sizes={""}
                                         />
+                    */}
                                         <AvatarFallback>CN</AvatarFallback>
                                     </Avatar>
                                 </Link>

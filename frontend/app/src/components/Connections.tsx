@@ -25,7 +25,12 @@ function getListOfConnectionRequests(){
 }
 
 
-function getConReqListForUserApproval():string[] {
+export function getApprovedConList():string[] {
+  //@ts-ignore
+  return JSON.parse(localStorage.getItem("ApprovedConList")) || [""]
+}
+
+export function getConReqListForUserApproval():string[] {
   //@ts-ignore
   return JSON.parse(localStorage.getItem("ConReqListForUserApproval")) || [""]
 }
@@ -64,6 +69,22 @@ function addConReqToSpamList(key:string){
 }
 
 
+function getSpamList():string[]{
+  let laststate  = [];
+    const b = localStorage.getItem("ConReqSpamList")
+    try{
+      //@ts-ignore
+      if(b && b!.length>5)
+        laststate=JSON.parse(b);
+      return laststate;
+    }
+    catch(error){
+    console.log("🚀 ~ file: getSpamList()  JSON.parse(localStorage.getItem(ConReqSpamList)) failed  error:", error)
+    }
+    return laststate;
+
+}
+
 
 function addConToApprovedList(key:string){
 
@@ -81,8 +102,55 @@ function addConToApprovedList(key:string){
     laststate.push(key);
     localStorage.setItem("ApprovedConList",JSON.stringify(laststate));
   }
+  //check if the key is in any other list and remove it if it is. 
 
-    
+  removeKeyFromSpamList(key);
+  removeKeyFromWaitingList(key);
+
+}
+
+function removeKeyFromWaitingList(key:string){
+
+  key=key.toLocaleUpperCase();
+  let laststate  = [];
+    const b = localStorage.getItem("ConReqListForUserApproval")
+    try{
+      //@ts-ignore
+      if(b && b!.length>5)
+       laststate=JSON.parse(b);
+       
+    }
+    catch(error){
+    console.log("🚀 ~ file: removeKeyFromWaitingList()  error:", error)
+    }
+       //@ts-ignore
+    laststate= laststate.filter(item => item.toLocaleUpperCase() !== key);
+    let out = [ ...(new Set(laststate))]
+    localStorage.setItem("ConReqListForUserApproval",JSON.stringify(out));
+
+}
+
+
+
+function removeKeyFromSpamList(key:string){
+
+  key=key.toLocaleUpperCase();
+  let laststate  = [];
+    const b = localStorage.getItem("ConReqSpamList")
+    try{
+      //@ts-ignore
+      if(b && b!.length>5)
+       laststate=JSON.parse(b);
+       
+    }
+    catch(error){
+    console.log("🚀 ~ file:  removeKeyFromSpamList() failed  error:", error)
+    }
+       //@ts-ignore
+    laststate= laststate.filter(item => item.toLocaleUpperCase() !== key);
+    let out = [ ...(new Set(laststate))]
+    localStorage.setItem("ConReqSpamList",JSON.stringify(out));
+
 }
 
 function isConnectionApproved(peerAddress:string){
@@ -157,16 +225,6 @@ async function syncConversation(convo:any,supabase:any){
   
 
 
-  function getConStatus(peerAddress:string){
-    try{
-      //@ts-ignore
-    return ( JSON.parse(localStorage.getItem(("cr_"+peerAddress+"_clientAddress_"+clientAddress).toLocaleUpperCase()) ))
-    }
-    catch(error){
-      console.log("🚀 ~ file: Connections.tsx:142 ~ getConStatus ~ error:", error)
-      
-    }
-  }
 
 
   let gitcoinScore=-1;
@@ -177,9 +235,15 @@ async function syncConversation(convo:any,supabase:any){
     console.log("🚀 ~ file: Connections.tsx:152 ~ syncConversation ~ clientAddress:", clientAddress)
     let localc = getLocalConvoSync(peerAddress,clientAddress)
     let newc={}
-    if( true ||  !localc){ //TODO remove true 
+    let clientReplied=false;
+    if(true || !localc){ //TODO remove true 
 
-      
+      let m5res = await convo.messages({limit:5,direction:2});
+      console.log("m5res=",m5res)
+      //@ts-ignore
+      clientReplied = m5res?.filter((a)=> a.senderAddress.toLocaleUpperCase()===clientAddress)?.length>0 ? true : false;
+      console.log("🚀 ~ file: Connections.tsx:245 ~ syncConversation ~ clientReplied:", clientReplied)
+
       let mres = await convo.messages({limit:1,direction:1}); //getting first message
       console.log("🚀 ~ file: App.tsx:78 ~ syncConversation ~ mres:", mres)
       const firstmsg =   ( mres&&mres.length>0&&mres[0].content &&mres[0].content.content )? xmsgcontent(mres[0]) : "";
@@ -289,7 +353,7 @@ async function syncConversation(convo:any,supabase:any){
           let res3  = await supabase.from('people_search').select('pk,trust_score,gitcoin_score').eq('pk',peerAddress).single();
           console.log("🚀 ~ file: Connections.tsx:173 ~ syncConversation ~ res3:", res3)
           
-          if(res3  && res3!.data!.gitcoin_score){
+          if(res3  && res3?.data?.gitcoin_score){
             gitcoinScore=res3!.data!.gitcoin_score;
 
           }
@@ -302,20 +366,28 @@ async function syncConversation(convo:any,supabase:any){
       console.log("🚀 ~ file: App.tsx:68 ~ syncConversation ~ newc:", newc)
 
       //TODO change the below based on user settings 
-      if( ( (peerTrustScore>1||gitcoinScore>3) && requestAccouncedPublically && connectionRequests30days<400 )  || (peerTrustScore>24&&gitcoinScore>20) ){
+      if( clientReplied){
+          addConToApprovedList(peerAddress);
+          const userResponse="replied";
+          //@ts-ignore
+          newc.userResponse=userResponse;
+           //@ts-ignore
+          newc.autoFilterState="ok-user-replied"
+      }
+      else if( ( (peerTrustScore>1||gitcoinScore>3) && requestAccouncedPublically && connectionRequests30days<400 )  || (peerTrustScore>24&&gitcoinScore>20) ){
         addConReqListForUserApproval(peerAddress);
         //@ts-ignore
-        newc.autoFilterState="spam"
+        newc.autoFilterState="ok"
 
         console.log(" EVAL EVAL EVAL "+peerAddress+" IS OK         .     data="+JSON.stringify(newc));
       }
       else{
         addConReqToSpamList(peerAddress);
 
-
+          //@ts-ignore 
+        newc.autoFilterState="spam"
         console.log(" EVAL EVAL EVAL "+peerAddress+" GOT REJECTED     .   data="+JSON.stringify(newc));
           //@ts-ignore
-        newc.autoFilterState="ok"
       }
 
       setLocalConvoSync(peerAddress,clientAddress,newc);
@@ -332,7 +404,32 @@ const Connections = () => {
 
 
 
+
+  function getConStatusMini(peerAddress:string){
+    try{
+      //@ts-ignore
+      
+      console.log("🚀 ~ file: Connections.tsx:399 ~ clientAddress ~ ",clientAddress)
+    console.log("🚀 ~ file: Connections.tsx:399 ~ getConStatusMini ~ clientAddress:", clientAddress)
+      console.log("🚀 ~ file: Connections.tsx:399 ~ getConStatusMini ~ "+("cr_"+peerAddress+"_clientAddress_"+clientAddress).toLocaleUpperCase())
+
+ //@ts-ignore
+    return ( JSON.parse(localStorage.getItem(("cr_"+peerAddress+"_clientAddress_"+clientAddress).toLocaleUpperCase()) ))
+    }
+    catch(error){
+      console.log("🚀 ~ file: Connections.tsx:142 ~ getConStatus ~ error:", error)
+      
+    }
+    
+  }
+
+  
+
+  const [count, setCount] = useState(0);
+  const [showAll, setShowAll] = useState(false);
   const connectionForUserToApproveList =  getConReqListForUserApproval();
+  const connectionApprovedList =  getApprovedConList();
+  const connectionSpamList =  getSpamList();
   console.log("🚀 ~ file: Connections.tsx:312 ~ Connections ~ connectionForUserToApproveList:", connectionForUserToApproveList)
   
   const supabase = useContext(SupabaseContext);
@@ -345,11 +442,42 @@ const Connections = () => {
     const allconvo = await client!.conversations.list();
     console.log("🚀 ~ file: App.tsx:32 ~ getMessages ~ allconvo:", allconvo)
 
-    if(allconvo && allconvo.length>1)
+    if(allconvo && allconvo.length>0)
       await syncConversationlist(allconvo,supabase);
  
    
   };
+
+  const acceptClickHandler = (key:string) => {
+    return (event: React.MouseEvent) => {
+      addConToApprovedList(key)
+      setCount(1+count)
+     event.preventDefault();
+    }
+  }
+
+  const rejectClickHandler = (key:string) => {
+    return (event: React.MouseEvent) => {
+      addConReqToSpamList(key)
+      setCount(1+count)
+      event.preventDefault();
+    }
+  }
+
+  const simplergetConStatus =(key:string) =>{
+    let s ="";
+    //@ts-ignore
+    if( getConStatus(key,clientAddress)){
+       console.log("🚀 ~ file: Connections.tsx:451 ~ simplergetConStatus ~ clientAddress:", clientAddress)
+       //@ts-ignore
+      s= getConStatus(key,clientAddress);
+
+      //@ts-ignore
+      return ( " connectionRequests30days="+s.connectionRequests30days+" requestAccouncedPublically="+s.requestAccouncedPublically+" peerTrustScore="+s.peerTrustScore+" gitcoinScore="+s.gitcoinScore+" autoFilterState=" +s.autoFilterState )
+    }
+    return "";
+
+  }
 
 
 
@@ -362,8 +490,8 @@ const Connections = () => {
 
     const navigate = useNavigate();
     const { address } = useAccount();
-    const clientAddress = client?.address?.toLocaleUpperCase;
     const { data: walletClient } = useWalletClient();
+    const clientAddress = walletClient?.account?.address
     const [xmtpClient, setXmtpClient] = useState<Client | null>(null);
   
     useEffect(() => {
@@ -442,24 +570,20 @@ const Connections = () => {
                 <li key={item} className="">
                 
                   <div className="flex gap-16 mx-12 card-2">
-                    <img
-                      className="rounded-full h-[80px] w-[80px]"
-                      src="https://avatars.githubusercontent.com/u/65860201?s=96&v=4"
-                      alt="profile-image"
-                    />
+                    
                     <div>
                       <div>
                         <p className=" font-sans mb-2">
                           <strong>{item}</strong> is intiving you to
                           connect
                         </p>
-                        <button
+                        <button onClick={rejectClickHandler(item)}
                           className="text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 shadow-lg shadow-red-500/50 font-medium rounded-lg text-sm px-4 mb-4  text-center mr-2  h-[30px]"
                           type="submit"
                         >
                           Reject
                         </button>
-                        <button
+                        <button  onClick={acceptClickHandler(item)}
                           className="text-white mb-4 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-4 text-center mr-2  h-[30px]"
                           type="submit"
                         >
@@ -470,9 +594,55 @@ const Connections = () => {
                         <p className="text-gray-600 ml-2 font-sans">
                           Looking forward to connect{" "}
                         </p>
-                        <p className="absolute bottom-0 ml-2 text-gray-500 font-sans">
-                          Accept to connect
+                         
+                      </div>
+                      <p className="text-gray-300 font-sans text-sm">
+                        {  simplergetConStatus(item)} 
                         </p>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+
+
+        </div>
+
+
+             <a  className="btn btn-link gap-16 mx-8"  onClick={()=>setShowAll(!showAll)}>Show All ...</a>
+        <div  style={{display: (showAll) ? 'block' : 'none'}}>
+
+          <h2 className="text-center font-sans text-[12px] font-bold mb-2">Spam Folder</h2>
+
+          <ul className="flex flex-row flex-wrap ">
+            {connectionSpamList.map((item,index) => {
+              //const itemstatus=getConStatus(item);
+              return (
+                <li key={item} className="">
+                
+                  <div className="flex gap-16 mx-8 card-2">
+                    
+                    <div>
+                      <div>
+                        <p className=" font-sans mb-2">
+                          <strong className="text-red-500">{item}</strong>  
+                        </p>
+                         {  " "}
+                      
+                        <button  onClick={acceptClickHandler(item)}
+                          className="text-white mb-4 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-4 text-center mr-2  h-[30px]"
+                          type="submit"
+                        >
+                          Accept
+                        </button>
+                      </div>
+
+                    <div className="relative border-2 border-gray-400 rounded-md h-[60px]">
+                        <p className="text-gray-600 ml-2 font-sans">
+                        {  simplergetConStatus(item)} 
+                        </p>
+                         
                       </div>
                     </div>
                   </div>
@@ -480,9 +650,57 @@ const Connections = () => {
               );
             })}
           </ul>
+
+
         </div>
+
+
+
+        <div style={{display: (showAll) ? 'block' : 'none'}}>
+          <h2 className="text-center font-sans text-[12px] font-bold mb-2">Accepted Connections</h2>
+
+          <ul className="flex flex-row flex-wrap ">
+            {connectionApprovedList.map((item,index) => {
+              //const itemstatus=getConStatus(item);
+              return (
+                <li key={item} className="">
+                
+                  <div className="flex gap-16 mx-8 card-2">
+                    
+                    <div>
+                      <div>
+                        <p className=" font-sans mb-2">
+                          <strong className="text-green-500">{item}</strong>  
+                        </p>
+                       
+                        <button onClick={rejectClickHandler(item)}
+                          className="text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 shadow-lg shadow-red-500/50 font-medium rounded-lg text-sm px-4 mb-4  text-center mr-2  h-[30px]"
+                          type="submit"
+                        >
+                          Reject
+                        </button>
+                      </div>
+                      <div className="relative border-2 border-gray-400 rounded-md h-[60px]">
+                        <p className="text-gray-600 ml-2 font-sans">
+                        {  simplergetConStatus(item)} 
+                        </p>
+                         
+                      </div>
+                    </div>
+                  </div>
+                </li>
+              );
+            })}
+          </ul>
+
+
+        </div>
+
+
       </div>
+  
     </div>
+
   );
 };
 

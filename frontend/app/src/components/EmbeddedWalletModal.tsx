@@ -1,9 +1,11 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { AiOutlineClose } from "react-icons/ai";
 import { IoCopyOutline, IoLogOutOutline } from "react-icons/io5";
 import { MdDone } from "react-icons/md";
 import { useWallet } from "../hooks/useWallet";
-import { useAccount } from "wagmi";
+import { useBalance } from "wagmi";
+import { formatEther } from "ethers";
+import { Address } from "viem";
 //@ts-ignore
 import Identicon from "react-identicons";
 interface IEmbeddedWalletModal {
@@ -25,10 +27,38 @@ const EmbeddedWalletModal: React.FC<IEmbeddedWalletModal> = ({
   setIsWalletModal,
 }) => {
   const { account } = useWallet();
+  const { data } = useBalance({
+    address: account?.address,
+  });
+  console.log("🚀 ~ file: EmbeddedWalletModal.tsx:33 ~ data:", data);
+  const ref = useRef<HTMLDivElement | null>(null);
   const [isCopied, setIsCopied] = useState(false);
   const truncatedAddress = truncateAddress(account?.address as string);
+  const balance = data && formatEther(data?.value!);
+  console.log("🚀 ~ file: EmbeddedWalletModal.tsx:38 ~ balance:", balance!);
   //   const { address, isConnected, isConnecting, isReconnecting, connector } =
   //     useAccount();
+
+  useEffect(() => {
+    function handleEvent(event: MouseEvent) {
+      const clickedElement = event.target as HTMLElement;
+      const clickedElementId = clickedElement.id;
+      console.log(
+        "🚀 ~ file: LoginWithEmail.tsx:122 ~ handleEvent ~ clickedElementId:",
+        clickedElementId
+      );
+
+      if (clickedElementId === "bg") {
+        closeModal();
+      }
+    }
+
+    document.addEventListener("mousedown", handleEvent);
+
+    return () => {
+      document.removeEventListener("mousedown", handleEvent);
+    };
+  }, [ref]);
 
   const closeModal = () => {
     setIsWalletModal(false);
@@ -42,8 +72,15 @@ const EmbeddedWalletModal: React.FC<IEmbeddedWalletModal> = ({
     }, 1200);
   };
   return (
-    <div className="fixed inset-0 flex  bg-opacity-40 items-center justify-center z-10 divide-y divide-gray-200 bg-[#b2b2b2]">
-      <div className="relative bg-[#f4f4f4] rounded-xl shadow-2xl  drop-shadow-2xl w-96 border-2 h-56">
+    <div
+      id="bg"
+      ref={ref}
+      className="fixed inset-0 flex  bg-opacity-40 items-center justify-center z-10 divide-y divide-gray-200 bg-[#b2b2b2]"
+    >
+      <div
+        id="modal"
+        className="relative bg-[#f4f4f4] rounded-xl shadow-2xl  drop-shadow-2xl w-96 border-2 h-56"
+      >
         <AiOutlineClose
           className="absolute right-6 top-4 cursor-pointer"
           onClick={closeModal}
@@ -54,7 +91,9 @@ const EmbeddedWalletModal: React.FC<IEmbeddedWalletModal> = ({
             <h1 className="font-bold tracking-lighter text-[#25292e] text-[18px] ">
               {truncatedAddress}
             </h1>
-            <h1 className="font-semibold text-[#868989] ">0 ETH</h1>
+            <h1 className="font-semibold text-[#868989] ">
+              {balance ? balance : "0.0"} ETH
+            </h1>
           </div>
         </div>
         <div className="absolute bottom-4 w-full flex gap-8 justify-center">
