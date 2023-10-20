@@ -174,11 +174,23 @@ export default function ProfileCard() {
                 <div>
                   <div className=" flex">
                     <div>
-                      <Avatar
-                        style={{ width: "8rem", height: "8rem" }}
-                        className="rounded-full"
-                        {...config}
-                      />
+                      {indexedUser &&
+                      indexedUser.find((item) => item.avatar !== null) ? (
+                        <img
+                          className="w-44 h-32 rounded-full"
+                          src={
+                            indexedUser.find(
+                              (item) => item.avatar !== undefined
+                            )!.avatar
+                          }
+                        />
+                      ) : (
+                        <Avatar
+                          style={{ width: "8rem", height: "8rem" }}
+                          className="rounded-full"
+                          {...config}
+                        />
+                      )}
                     </div>
                     <div className="w-full flex justify-end mt-6 py-6">
                       <Link
