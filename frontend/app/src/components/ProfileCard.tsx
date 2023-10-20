@@ -173,8 +173,13 @@ export default function ProfileCard() {
                         <img
                           className="w-44 h-32 rounded-full"
                           src={
-                            indexedUser && indexedUser[0].error! !== "Not Found"
-                              ? indexedUser[0].avatar
+                            indexedUser[0].error !== "Not Found" &&
+                            indexedUser.find(
+                              (item) => item.avatar !== undefined
+                            )
+                              ? indexedUser.find(
+                                  (item) => item.avatar !== undefined
+                                )!.avatar
                               : ""
                           }
                         />
