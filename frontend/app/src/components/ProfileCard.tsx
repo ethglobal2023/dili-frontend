@@ -1,6 +1,13 @@
 import React, { useContext, useEffect, useState } from "react";
 import FileUploadModal from "./FileUpload";
-import { IconButton, Tooltip } from "@radix-ui/themes";
+import { IconButton } from "@radix-ui/themes";
+import { Card } from "../../@/components/ui/card";
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "../../@/components/ui/tooltip";
 import "./ProfileCard.css";
 import { Link, useNavigate, useParams } from "react-router-dom";
 import { Resume, IndexedUser, Scores } from "../types";
@@ -221,137 +228,144 @@ export default function ProfileCard() {
           />
           {/* <div className=" ml-10"> */}
           <div className=" flex items-center justify-center text-gray-800 font-montserrat h-fit  w-full lg:p-10 p-6  rounded-xl ">
-            <div className="profile-info w-[70%] rounded-xl shadow-xl drop-shadow-2xl p-6 ">
-              <div className="flex flex-col items-center">
-                <div className=" flex flex-col items-center justify-between">
-                  <div className="flex flex-col items-center justify-start pb-8">
-                    <div>
-                      {indexedUser &&
-                      indexedUser.find((item) => item.avatar !== null) ? (
-                        <img
-                          className="w-32 h-32 rounded-full"
-                          src={
-                            indexedUser.find(
-                              (item) => item.avatar !== undefined
-                            )!.avatar
-                          }
-                        />
+            <Card
+              className={`
+            overflow-hidden
+            ${"bg-white"}
+            rounded-lg
+            w-[70%] 
+            shadow-lg 
+            p-4  
+            transition-transform 
+            transform hover:scale-105`}
+            >
+              <div className="profile-info w-full  p-6 ">
+                <div className="flex flex-col items-center">
+                  <div className=" flex flex-col items-center justify-between">
+                    <div className="flex flex-col items-center justify-start pb-8">
+                      <div>
+                        {indexedUser &&
+                        indexedUser.find((item) => item.avatar !== null) ? (
+                          <img
+                            className="w-32 h-32 rounded-full"
+                            src={
+                              indexedUser.find(
+                                (item) => item.avatar !== undefined
+                              )!.avatar
+                            }
+                          />
+                        ) : (
+                          // <Avatar
+                          //   style={{ width: "8rem", height: "8rem" }}
+                          //   className="rounded-full"
+                          //   {...config}
+                          // />
+                          <img
+                            src={
+                              fetchedProfile?.profileImage &&
+                              fetchedProfile?.profileImage!
+                            }
+                            className="w-32 h-32 rounded-2xl"
+                          />
+                        )}
+                      </div>
+                      <div className="flex flex-col text-center gap-1">
+                        <h3 className=" text-[18px] font-sans font-bold tracking-tighter text-gray-600 mt-2">
+                          {fetchedProfile?.firstName} {fetchedProfile?.lastName}
+                        </h3>
+                        <h2 className="tracking-tighter">
+                          {fetchedProfile?.preferredTitle!}
+                        </h2>
+                        <div className="flex gap-1 items-center justify-center">
+                          <CiLocationOn size={16} />
+
+                          <p className=" text-[16px] tracking-tighter font-sans  text-gray-500 ">
+                            {fetchedProfile?.preferredLocation}
+                          </p>
+                        </div>
+                      </div>
+                    </div>
+                    <div className="flex gap-10 -mt-3 mb-4 items-center justify-center">
+                      <div className="flex h-fit gap-4  ">
+                        <TooltipProvider>
+                          <Tooltip delayDuration={10}>
+                            <TooltipTrigger asChild>
+                              <div className="text-[16px] px-4 py-2 rounded-xl text-lg shadow-xl drop-shadow-md bg-white  font-sans font-medium text-gray-500 tracking-tighter ">
+                                {" "}
+                                {scores?.trust_score}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Trust Score</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                        <TooltipProvider>
+                          <Tooltip delayDuration={10}>
+                            <TooltipTrigger asChild>
+                              <div className="text-[16px] px-4 py-2 rounded-xl text-lg shadow-xl drop-shadow-md bg-white  font-sans font-medium text-gray-500 tracking-tighter ">
+                                {" "}
+                                {scores?.gitcoin_score}
+                              </div>
+                            </TooltipTrigger>
+                            <TooltipContent>
+                              <p>Gitcoin Score</p>
+                            </TooltipContent>
+                          </Tooltip>
+                        </TooltipProvider>
+                      </div>
+                      {address.toLowerCase() === cid?.toLowerCase() ? (
+                        <div className="w-full flex justify-end mt-6 py-6">
+                          <Link
+                            to="/profileEdit"
+                            state={{ profileData: fetchedProfile }}
+                          >
+                            <button
+                              className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
+                              type="button"
+                              onClick={() => {
+                                navigate("/profileEdit");
+                              }}
+                            >
+                              Edit profile
+                            </button>
+                          </Link>
+                        </div>
                       ) : (
-                        // <Avatar
-                        //   style={{ width: "8rem", height: "8rem" }}
-                        //   className="rounded-full"
-                        //   {...config}
-                        // />
-                        <img
-                          src={
-                            fetchedProfile?.profileImage &&
-                            fetchedProfile?.profileImage!
-                          }
-                          className="w-32 h-32 rounded-2xl"
-                        />
+                        <button
+                          onClick={clickHandler(address, walletClient, client)}
+                          className="px-4  mt-1 h-fit hover:scale-105 transition duration-200 text-lg rounded-xl font-semibold tracking-tighter bg-[#0e76fd] text-white py-1.5"
+                        >
+                          Connect
+                        </button>
                       )}
                     </div>
-                    <div className="flex flex-col text-center gap-1">
-                      <h3 className=" text-[18px] font-sans font-bold tracking-tighter text-gray-600 mt-2">
-                        {fetchedProfile?.firstName} {fetchedProfile?.lastName}
-                      </h3>
-                      <h2 className="tracking-tighter">
-                        {fetchedProfile?.preferredTitle!}
-                      </h2>
-                      <div className="flex gap-1 items-center justify-center">
-                        <CiLocationOn size={16} />
-
-                        <p className=" text-[16px] tracking-tighter font-sans  text-gray-500 ">
-                          {fetchedProfile?.preferredLocation}
-                        </p>
-                      </div>
-                    </div>
                   </div>
-                  <div className="flex gap-10 -mt-3 mb-4 items-center justify-center">
-                    <div className="flex h-fit gap-4  ">
-                      <Tooltip
-                        content={"Trust Score"}
-                        side={"top"}
-                        delayDuration={10}
-                        className={"bg-white text-gray-600 "}
-                      >
-                        <div className="text-[16px] px-4 py-2 rounded-xl text-lg shadow-xl drop-shadow-xl bg-white  font-sans font-medium text-gray-500">
-                          {/* <Link to={link} className={"menu-link"}> */}
-                          <p className="tracking-tighter ">
-                            {" "}
-                            {scores?.trust_score}
-                          </p>
-                          {/* </Link> */}
-                        </div>
-                      </Tooltip>
-                      <Tooltip
-                        content={"Gitcoin Score"}
-                        side={"top"}
-                        // arrowPadding={2222}
-                        delayDuration={10}
-                        className={"bg-white text-gray-600 "}
-                      >
-                        <div className="text-[16px] px-4 py-2 rounded-xl text-lg shadow-xl drop-shadow-xl bg-white  font-sans font-medium text-gray-500">
-                          {/* <Link to={link} className={"menu-link"}> */}
-                          <p className="tracking-tighter">
-                            {" "}
-                            {scores?.gitcoin_score}
-                          </p>
-                          {/* </Link> */}
-                        </div>
-                      </Tooltip>
-                    </div>
-                    {address.toLowerCase() === cid?.toLowerCase() ? (
-                      <div className="w-full flex justify-end mt-6 py-6">
-                        <Link
-                          to="/profileEdit"
-                          state={{ profileData: fetchedProfile }}
-                        >
-                          <button
-                            className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
-                            type="button"
-                            onClick={() => {
-                              navigate("/profileEdit");
-                            }}
-                          >
-                            Edit profile
-                          </button>
-                        </Link>
-                      </div>
-                    ) : (
-                      <button
-                        onClick={clickHandler(address, walletClient, client)}
-                        className="px-4  mt-1 h-fit hover:scale-105 transition duration-200 text-lg rounded-xl font-semibold tracking-tighter bg-[#0e76fd] text-white py-1.5"
-                      >
-                        Connect
-                      </button>
-                    )}
-                  </div>
-                </div>
-                <div className="w-full flex justify-between ">
-                  {" "}
-                  <div className="">
+                  <div className="w-full flex justify-between ">
                     {" "}
-                    <p className=" text-[16px] leading-normal font-sans font-medium text-gray-500">
-                      {fetchedProfile?.description}
-                    </p>
-                    <div className=" flex flex-wrap items-center justify-center tracking-tight mt-2 gap-1.5 text-[16px] font-sans  text-gray-500 ">
-                      {/* <span className="font-bold">Skills</span>:&nbsp; */}
-                      {fetchedProfile?.skillKeywords
-                        .split(",")
-                        .map((keyword, index) => (
-                          <span
-                            key={index}
-                            className="bg-blue-100  text-xs  font-medium mr-2 px-2.5 py-0.5 rounded  text-slate-400"
-                          >
-                            {keyword}
-                          </span>
-                        ))}
+                    <div className="">
+                      {" "}
+                      <p className=" text-[16px] leading-normal font-sans font-medium text-gray-500">
+                        {fetchedProfile?.description}
+                      </p>
+                      <div className=" flex flex-wrap items-center justify-center tracking-tight mt-2 gap-1.5 text-[16px] font-sans  text-gray-500 ">
+                        {/* <span className="font-bold">Skills</span>:&nbsp; */}
+                        {fetchedProfile?.skillKeywords
+                          .split(",")
+                          .map((keyword, index) => (
+                            <span
+                              key={index}
+                              className="bg-blue-100  text-xs  font-medium mr-2 px-2.5 py-0.5 rounded  text-slate-400"
+                            >
+                              {keyword}
+                            </span>
+                          ))}
+                      </div>
                     </div>
                   </div>
                 </div>
               </div>
-            </div>
+            </Card>
           </div>
 
           {/* <div className="text-gray-800 font-montserrat h-fit mt-12 w-[700px] lg:p-10 p-6  card rounded-xl">
