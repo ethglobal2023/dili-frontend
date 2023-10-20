@@ -193,7 +193,9 @@ export const Search: FC = () => {
                   json->"preferredlocation",
                   json->"cid"`
       )
-      .textSearch("text ", term);
+      .textSearch("text ", term)
+      .eq('on_xmtp','true')
+      .order('trust_score', { ascending: false });
 
     //TODO Make this search more robust
     console.log("results: ", results);
@@ -221,9 +223,7 @@ export const Search: FC = () => {
             className={`
             overflow-hidden
             ${
-              user.cid && user.cid.endsWith("resume.json")
-                ? "bg-white"
-                : "bg-gray-200 opacity-50"
+                "bg-white"
             }
             rounded
             w-96 
@@ -242,20 +242,18 @@ export const Search: FC = () => {
                   items-center 
                   space-x-4
                   ${
-                    user.cid && user.cid.endsWith("resume.json")
-                      ? "bg-white"
-                      : "bg-gray-200 opacity-50"
+                     "bg-white"
                   }
                   `}
                 to={`/profile/${user.pk}`}
               >
                 <Avatar className="w-14 h-14">
-                  {/* 
+                  
                                         <AvatarImage
                                             src={user.profileImage || randomImage}
                                             sizes={""}
                                         />
-                    */}
+                    
                   <AvatarFallback>CN</AvatarFallback>
                 </Avatar>
               </Link>
