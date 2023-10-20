@@ -33,7 +33,6 @@ type OrganizationData = {
     endDate: Date;
   };
   organizationWebsite: string;
-  type: "education" | "work" | "volunteer";
 };
 type FormInputs = {
   firstName: string;
@@ -52,6 +51,7 @@ export function ProfilePublish() {
   const [cid, setCid] = useState(null);
   const [response, setResponse] = useState({});
   const [error, setError] = useState(null);
+  const [showCidData,setShowCidData] = useState(false)
   const [attestationDatat, setAttestationsData] = useState();
   const { address } = useWallet();
   const { data: walletClient } = useWalletClient();
@@ -68,7 +68,7 @@ export function ProfilePublish() {
   } = useForm<FormInputs>({});
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "organizations",
+    name: "organizations", 
   });
   const fetchData = async () => {
     try {
@@ -88,10 +88,21 @@ export function ProfilePublish() {
      
      
     }, []);
+    useEffect(() => {
+      append({
+        organizationName: "",
+        titleAtWork: "",
+        relationshipTimestamp: {
+          startDate: new Date(),
+          endDate: new Date(),
+        },
+        organizationWebsite: "",
+      });
+    }, []);
 
   const onSubmit: SubmitHandler<FormInputs> = async (data, event) => {
     event?.preventDefault();
-
+    setLoading(true)
     try {
       if (!walletClient) throw new Error("Wallet client not initialized");
       if (!address) throw new Error("Wallet address not initialized");
@@ -123,15 +134,47 @@ export function ProfilePublish() {
         signature,
       };
 
-      const res2 = await fetch(`${BACKEND_URL}/profile`, {
+      const res2 = await fetch(`http://159.203.132.121:3005/api/profile`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // headers: { 'Content-Type': 'multipart/form-data' },
         body: JSON.stringify(requestBody),
       }).then((res) => res.json());
-
+      toast.success('🦄 Profile Updated', {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        });
       setResponse(res2);
+      toast(`CID: ${res2.cid}`, {
+        position: "bottom-right",
+        autoClose: 10000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        });
+       setLoading(false)
+       setShowCidData(true)
     } catch (err: any) {
+      toast.error(err.message, {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        });
+        setLoading(false)
       setError(err.message);
     }
   };
@@ -149,7 +192,7 @@ export function ProfilePublish() {
         <p>Back</p>
       </div>
       {loading?<Loading/>:(<div className="flex flex-col min-h-screen h-fit  w-full bg-white justify-center align-middle">
-        <div className="w-full flex justify-center"><h1 className="text-[24px] font-bold text-center mt-14">Create your Profile</h1></div>
+       {!showCidData &&<> <div className="w-full flex justify-center"><h1 className="text-[24px] font-bold text-center mt-14">Create your Profile</h1></div>
        <div className="flex justify-center"> <form
           onSubmit={handleSubmit(onSubmit)}
           className="  text-gray-800  font-montserrat h-fit mt-4 w-[600px] lg:p-10 p-6  bg-white bg-opacity-5 shadow-md  backdrop-blur rounded-xl border border-gray-400 border-opacity-18 "
@@ -209,7 +252,7 @@ export function ProfilePublish() {
               /></div>
             </div>
           </div>
-          {fields.map((organization, index) => (
+          {fields.map((organization, index) =>  (
             <div key={organization.id}>
               <div className="flex gap-[106px]"><label className="block  text-md font-medium text-gray-800">
                 Organization Name:
@@ -235,77 +278,36 @@ export function ProfilePublish() {
                   })}
                 /></div>
               </label></div>
-              <label className="block mb-2 text-md font-medium text-gray-800">
+              <label className="block mb-2 text-md text-center font-medium text-gray-800">
                 TimeLine
               </label>
 
-              <div date-rangepicker className="flex items-center">
+              <div date-rangepicker className="w-full flex justify-center">
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <svg
-                      className="w-4 h-4 "
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
-                    </svg>
-                  </div>
+                 
                   <input
+                    type="date"
                     {...register(
                       `organizations.${index}.relationshipTimestamp.startDate`,
-                      {
-                        required: true,
-                      }
+                      { required: true }
                     )}
-                    name="start"
-                    type="text"
-                    date-rangepicker="true"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 "
-                    placeholder="Select date start"
-                  />
+                    className="bg-gray-50 p-4 border-2 border-purple-500 text-gray-600 text-sm rounded-2xl focus:ring-blue-500 focus:border-blue-500 block w-full pl-2.5 "
+                    />
                 </div>
                 <span className="mx-4 text-gray-500">to</span>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <svg
-                      className="w-4 h-4 "
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
-                    </svg>
-                  </div>
+                  
                   <input
+                    type="date"
                     {...register(
                       `organizations.${index}.relationshipTimestamp.endDate`,
-                      {
-                        required: true,
-                      }
+                      { required: true }
                     )}
-                    name="end"
-                    type="text"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5  "
-                    placeholder="Select date end"
+                    className="bg-gray-50 p-4 border-2 border-purple-500 text-gray-600 text-sm rounded-2xl focus:ring-blue-500 focus:border-blue-500 block w-full pl-2.5 "
                   />
                 </div>
               </div>
-              <div className="w-full flex justify-center"><div><label className="block text-md font-medium text-gray-800 mt-6">
-                Type
-              </label>
-              <div className="input">
-              <select
-                {...register("language", { required: true })}
-                id="languages"
-                >
-                <option selected>Choose a Type</option>
-                <option value="Education">Education</option>
-                <option value="Experience">Experience</option>
-                <option value="Volunteer">Volunteer</option>
-              </select></div></div></div>
+             
               <div className="w-full flex justify-center mt-6">
                 {" "}
                 <button
@@ -332,7 +334,6 @@ export function ProfilePublish() {
                     endDate: new Date(),
                   },
                   organizationWebsite: "",
-                  type: "education",
                 })
               }
             >
@@ -396,8 +397,8 @@ export function ProfilePublish() {
           >
             Upload to IPFS
           </button></div>
-        </form></div>
-        {cid && <div>CID: {cid}</div>}
+        </form></div></>}
+        {cid&&showCidData  && <div>CID: {cid}</div>}
         {error && <div>Error: {error}</div>}
         {response && JSON.stringify(response)}
       </div>)}

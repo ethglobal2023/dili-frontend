@@ -13,14 +13,16 @@ import { BACKEND_URL } from "./admin/EASConfigContext";
 import { MessageWithViemSignature } from "./admin/types";
 import { useWallet } from "../hooks/useWallet";
 import { useWalletClient } from "wagmi";
-import { DatePicker } from "antd";
+
 import "./App.css";
-import { useNavigate, useParams } from "react-router-dom";
-import axios from "axios";
+import { useLocation, useNavigate, useParams } from "react-router-dom";
+
 import { SupabaseContext } from "../contexts/SupabaseContext";
 import { useResumeCache } from "../contexts/FileCacheContext";
 import { ipfsDownload } from "../ipfs";
 import Loading from "./Loading";
+import { Dialog } from "@radix-ui/themes";
+
 type PublishResumeMessage = {
   account: string;
   resume: string;
@@ -33,7 +35,6 @@ type OrganizationData = {
     endDate: Date;
   };
   organizationWebsite: string;
-  type: "education" | "work" | "volunteer";
 };
 type FormInputs = {
   firstName: string;
@@ -48,8 +49,14 @@ type FormInputs = {
 };
 
 export function ProfileEdit() {
+  const location = useLocation();
+  const { profileData } = location.state;
+  console.log(
+    "Fetched Profile Data in Edit",profileData
+  )
   const [payload, setPayload] = useState("");
   const [cid, setCid] = useState(null);
+  const [showCidData,setShowCidData] = useState(false)
   const [response, setResponse] = useState({});
   const [error, setError] = useState(null);
   const [attestationDatat, setAttestationsData] = useState();
@@ -67,77 +74,133 @@ export function ProfileEdit() {
     handleSubmit,
     control,
     formState: { errors },
-    setValue,  reset,
-  } = useForm<FormInputs>({});
+    setValue,
+    reset,
+    getValues,
+  } = useForm<FormInputs>({
+    defaultValues: {
+      firstName: profileData?.firstName || "", 
+      lastName: profileData?.lastName || "",
+      language: profileData?.language || "",
+      description: profileData?.description || "",
+      preferredName: profileData?.preferredName || "",
+      preferredTitle: profileData?.preferredTitle || "",
+      skillKeywords: profileData?.skillKeywords || "",
+      preferredLocation: profileData?.preferredLocation || "",
+      organizations: profileData?.organizations || [], 
+    },
+  });
+
+
   const { fields, append, remove } = useFieldArray({
     control,
-    name: "organizations",
+    name: "organizations", 
   });
-  const fetchProfile = async (address:any) => {
-    try {
- 
-    const {data} = await supabase
-        .from("resumes")
-        .select("cid")
-        .eq("address", address.toLowerCase())
-        .single();
-    if (!data?.cid) throw new Error("No CID found for this address");
-    console.log("CID:",data.cid)
-    const profileCid = data.cid
-   
-        console.log("Fetching resume from IPFS");
-        const cacheEntry:any = resumeCache.get(profileCid)
-        if (cacheEntry) {
-            setFetchedProfile(cacheEntry);
-            return
-        }
-        const resume:any = await ipfsDownload(profileCid || "");
-        console.log("Fetched resume from IPFS: ", resume);
-        resumeCache.set(profileCid, {...resume, expiry: Date.now() + 1000 * 60 * 5})
-        setFetchedProfile(resume);
-    } catch
-        (error: any) {
-        console.log(error);
-    }
-};
-const fetchData = async () => {
-  try {
-    const response = await axios.get(
-      `http://159.203.132.121:3006/api/attestations?address=${address}`
-    );
-    console.log("Attestation Data", response.data);
-    setAttestationsData(response.data);
-    setLoading(false)
-  } catch (error) {
-    console.error("Error fetching attestation data data:", error);
-  }
-};
-  useEffect( () => {
-   setLoading(true)
-    fetchProfile(address);
-    fetchData();
-   
-   
-  }, []);
   useEffect(() => {
-    if (fetchedProfile) {
-      reset(fetchedProfile);
-//       fetchedProfile?.organizations.forEach((organization, index) => {
-//         const orgIndex = index.toString();
-//         setValue(`organizations[${orgIndex}].organizationName` as keyof FormInputs, organization.organizationName);
-// setValue(`organizations[${orgIndex}].titleAtWork` as keyof FormInputs, organization.titleAtWork);
-// // setValue(`organizations[${orgIndex}].relationshipTimestamp.startDate` as keyof FormInputs, organization.relationshipTimestamp.startDate);
-// // setValue(`organizations[${orgIndex}].relationshipTimestamp.endDate` as keyof FormInputs, organization.relationshipTimestamp.endDate);
-// setValue(`organizations[${orgIndex}].organizationWebsite` as keyof FormInputs, organization.organizationWebsite);
-// setValue(`organizations[${orgIndex}].type` as keyof FormInputs, organization.type);
-//       });
+    if (profileData) {
+      // Set values for non-organization fields from profileData
+   
+
+      // Clear existing organization fields
+      if (fields.length > 0) {
+        while (fields.length > 0) {
+          remove(0);
+        }
+      }
+  
+
+      // Prefill organization fields after clearing existing ones
+      profileData.organization.forEach((org:any, index:any) => {
+        append({
+          organizationName: org.organizationName,
+          titleAtWork: org.titleAtWork,
+          relationshipTimestamp: {
+            startDate: org.relationshipTimestamp?.startDate || new Date(),
+            endDate: org.relationshipTimestamp?.endDate || new Date(),
+          },
+          organizationWebsite: org.organizationWebsite,
+        });
+      });
     }
-    }
-  , [fetchedProfile, reset]);
+  }, [profileData]);
+//   const fetchProfile = async (address:any) => {
+//     try {
+ 
+//     const {data} = await supabase
+//         .from("resumes")
+//         .select("cid")
+//         .eq("address", address.toLowerCase())
+//         .single();
+//     if (!data?.cid) throw new Error("No CID found for this address");
+//     console.log("CID:",data.cid)
+//     const profileCid = data.cid
+   
+//         console.log("Fetching resume from IPFS");
+//         const cacheEntry:any = resumeCache.get(profileCid)
+//         if (cacheEntry) {
+//             setFetchedProfile(cacheEntry);
+//             return
+//         }
+//         const resume:any = await ipfsDownload(profileCid || "");
+//         console.log("Fetched resume from IPFS: ", resume);
+//         resumeCache.set(profileCid, {...resume, expiry: Date.now() + 1000 * 60 * 5})
+//         setFetchedProfile(resume);
+//     } catch
+//         (error: any) {
+//         console.log(error);
+//     }
+// };
+// const fetchData = async () => {
+//   try {
+//     const response = await axios.get(
+//       `http://159.203.132.121:3006/api/attestations?address=${address}`
+//     );
+//     console.log("Attestation Data", response.data);
+//     setAttestationsData(response.data);
+//     setLoading(false)
+//   } catch (error) {
+//     console.error("Error fetching attestation data data:", error);
+//   }
+// };
+//   useEffect( () => {
+//    setLoading(true)
+//     fetchProfile(address);
+//     fetchData();
+   
+   
+//   }, []);
+  // useEffect(() => {
+  //   if (fetchedProfile && fetchedProfile.organizations) {
+  //     reset({
+  //       firstName: fetchedProfile.firstName,
+  //       lastName: fetchedProfile.lastName,
+  //       language: fetchedProfile.language,
+  //       description: fetchedProfile.description,
+  //       preferredName: fetchedProfile.preferredName,
+  //       preferredTitle: fetchedProfile.preferredTitle,
+  //       skillKeywords: fetchedProfile.skillKeywords,
+  //       preferredLocation: fetchedProfile.preferredLocation,
+  //       organizations: fetchedProfile.organizations.map(org => ({
+  //         organizationName: org.organizationName,
+  //         titleAtWork: org.titleAtWork,
+  //         relationshipTimestamp: {
+  //           startDate: new Date(org.relationshipTimestamp.startDate),
+  //           endDate: new Date(org.relationshipTimestamp.endDate),
+  //         },
+  //         organizationWebsite: org.organizationWebsite,
+  //         type: org.type,
+  //       })),
+  //     });
+  //   }
+  // }, [fetchedProfile, reset]);
+
+  
+
+
 
   const onSubmit: SubmitHandler<FormInputs> = async (data, event) => {
     event?.preventDefault();
-
+setLoading(true)
     try {
       if (!walletClient) throw new Error("Wallet client not initialized");
       if (!address) throw new Error("Wallet address not initialized");
@@ -168,29 +231,48 @@ const fetchData = async () => {
         message,
         signature,
       };
-      
-      const res2 = await fetch(`http://159.203.132.121:3006/api/profile`, {
+
+      const res2 = await fetch(`http://159.203.132.121:3005/api/profile`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         // headers: { 'Content-Type': 'multipart/form-data' },
         body: JSON.stringify(requestBody),
       }).then((res) => res.json());
-if(res2){
-  toast.success('🦄 Uploaded to Ipfs', {
-    position: "bottom-right",
-    autoClose: 5000,
-    hideProgressBar: false,
-    closeOnClick: true,
-    pauseOnHover: true,
-    draggable: true,
-    progress: undefined,
-    theme: "light",
-    });
-    setResponse(res2);
-    alert(JSON.stringify(res2))
-}
-     
+      toast.success('🦄 Profile Updated', {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        });
+      setResponse(res2);
+      toast(`CID: ${res2.cid}`, {
+        position: "bottom-right",
+        autoClose: 10000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        });
+       setLoading(false)
+       setShowCidData(true)
     } catch (err: any) {
+      toast.error(err.message, {
+        position: "bottom-right",
+        autoClose: 5000,
+        hideProgressBar: false,
+        closeOnClick: true,
+        pauseOnHover: true,
+        draggable: true,
+        progress: undefined,
+        theme: "light",
+        });
+        setLoading(false)
       setError(err.message);
     }
   };
@@ -206,11 +288,13 @@ if(res2){
       >
         <IoMdArrowBack className="mt-1" />
         <p>Back</p>
-        </div>
-      {loading?(<Loading/>):(<div className="flex min-h-screen h-fit  w-full bg-white justify-center align-middle">
-        <form
+      </div>
+      {loading?<Loading/>:(
+      <div className="flex flex-col min-h-screen h-fit  w-full bg-white justify-center align-middle">
+        {!showCidData && <><div className="w-full flex justify-center"><h1 className="text-[24px] font-bold text-center mt-14">Edit your Profile</h1></div>
+       <div className="flex justify-center"> <form
           onSubmit={handleSubmit(onSubmit)}
-          className="  text-gray-800 font-montserrat h-fit mt-12 w-[600px] lg:p-10 p-6  bg-white bg-opacity-5 shadow-md  backdrop-blur rounded-xl border border-gray-400 border-opacity-18 "
+          className="  text-gray-800  font-montserrat h-fit mt-4 w-[600px] lg:p-10 p-6  bg-white bg-opacity-5 shadow-md  backdrop-blur rounded-xl border border-gray-400 border-opacity-18 "
         >
           <div className="flex gap-12">
             <div className=" flex flex-col w-[200px]">
@@ -221,7 +305,7 @@ if(res2){
               <input
                 type="text"
                 {...register("firstName", { required: true })}
-                
+                placeholder="Your first name"
               />
              </div>
             </div>
@@ -233,6 +317,7 @@ if(res2){
               <div className="input">
               <input
               {...register("lastName", { required: true })}
+              placeholder="Your last name"
               /></div>
             </div>
           </div>
@@ -249,6 +334,7 @@ if(res2){
               </label> <div className="input">
               <input
               {...register("language", { required: true })}
+              placeholder="Languages you speak"
               />
               </div>
             </div>
@@ -265,7 +351,7 @@ if(res2){
               /></div>
             </div>
           </div>
-          {fields.map((organization, index) => (
+          {fields.map((organization, index) =>  (
             <div key={organization.id}>
               <div className="flex gap-[106px]"><label className="block  text-md font-medium text-gray-800">
                 Organization Name:
@@ -291,77 +377,36 @@ if(res2){
                   })}
                 /></div>
               </label></div>
-              <label className="block mb-2 text-md font-medium text-gray-800">
+              <label className="block mb-2 text-md text-center font-medium text-gray-800">
                 TimeLine
               </label>
 
-              <div date-rangepicker className="flex items-center">
+              <div  className="w-full flex justify-center">
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <svg
-                      className="w-4 h-4 "
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
-                    </svg>
-                  </div>
+                 
                   <input
+                    type="date"
                     {...register(
                       `organizations.${index}.relationshipTimestamp.startDate`,
-                      {
-                        required: true,
-                      }
+                      { required: true }
                     )}
-                    name="start"
-                    type="text"
-                    date-rangepicker="true"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5 "
-                    placeholder="Select date start"
-                  />
+                    className="bg-gray-50 p-4 border-2 border-purple-500 text-gray-600 text-sm rounded-2xl focus:ring-blue-500 focus:border-blue-500 block w-full pl-2.5 "
+                    />
                 </div>
                 <span className="mx-4 text-gray-500">to</span>
                 <div className="relative">
-                  <div className="absolute inset-y-0 left-0 flex items-center pl-3 pointer-events-none">
-                    <svg
-                      className="w-4 h-4 "
-                      aria-hidden="true"
-                      xmlns="http://www.w3.org/2000/svg"
-                      fill="currentColor"
-                      viewBox="0 0 20 20"
-                    >
-                      <path d="M20 4a2 2 0 0 0-2-2h-2V1a1 1 0 0 0-2 0v1h-3V1a1 1 0 0 0-2 0v1H6V1a1 1 0 0 0-2 0v1H2a2 2 0 0 0-2 2v2h20V4ZM0 18a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V8H0v10Zm5-8h10a1 1 0 0 1 0 2H5a1 1 0 0 1 0-2Z" />
-                    </svg>
-                  </div>
+                  
                   <input
+                    type="date"
                     {...register(
                       `organizations.${index}.relationshipTimestamp.endDate`,
-                      {
-                        required: true,
-                      }
+                      { required: true }
                     )}
-                    name="end"
-                    type="text"
-                    className="bg-gray-50 border border-gray-300 text-gray-900 text-sm rounded-lg focus:ring-blue-500 focus:border-blue-500 block w-full pl-10 p-2.5  "
-                    placeholder="Select date end"
+                    className="bg-gray-50 p-4 border-2 border-purple-500 text-gray-600 text-sm rounded-2xl focus:ring-blue-500 focus:border-blue-500 block w-full pl-2.5 "
                   />
                 </div>
               </div>
-              <div className="w-full flex justify-center"><div><label className="block text-md font-medium text-gray-800 mt-6">
-                Type
-              </label>
-              <div className="input">
-              <select
-                {...register("language", { required: true })}
-                id="languages"
-                >
-                <option selected>Choose a Type</option>
-                <option value="Education">Education</option>
-                <option value="Experience">Experience</option>
-                <option value="Volunteer">Volunteer</option>
-              </select></div></div></div>
+             
               <div className="w-full flex justify-center mt-6">
                 {" "}
                 <button
@@ -388,7 +433,6 @@ if(res2){
                     endDate: new Date(),
                   },
                   organizationWebsite: "",
-                  type: "education",
                 })
               }
             >
@@ -397,50 +441,50 @@ if(res2){
           </div>
           <br />
 
-          <div className="flex gap-12">
+          <div className="flex gap-14">
             <div>
-              <label className="block mb-2 text-md font-medium text-gray-800">
+              <label className="block  text-md font-medium text-gray-800">
                 Preferred Name:
                 <div className="input">  <input
                   type="text"
                   {...register("preferredName", { required: true })}
-                  placeholder="name"
+                  placeholder="Your preferred name"
                 /></div>
               </label>
             </div>
             <br />
             <div>
-              <label className="block mb-2 text-md font-medium text-gray-800">
+              <label className="block  text-md font-medium text-gray-800">
                 Preferred Title:
                 <div className="input"> <input
                   type="text"
                   {...register("preferredTitle", { required: true })}
-                  placeholder="Lecturer"
+                  placeholder="Your preferred title"
                 /></div>
               </label>
             </div>
             <br />
           </div>
-          <div className="flex gap-12">
+          <div className="flex gap-14">
             <div>
-              <label className="block mb-2 text-md font-medium text-gray-800">
-                Skill Keywords:
+              <label className="block  text-md font-medium text-gray-800">
+                Skills:
                 <div className="input">
                 <input
                   type="text"
                   {...register("skillKeywords", { required: true })}
-                  placeholder="set theory, mathematics"
+                  placeholder=" Your skills"
                 /></div>
               </label>
             </div>
             <br />
             <div>
-              <label className="block mb-2 text-md font-medium text-gray-800">
+              <label className="block  text-md font-medium text-gray-800">
                 Preferred Location:
                 <div className="input"> <input
                   type="text"
                   {...register("preferredLocation", { required: true })}
-                  placeholder="Zurich and London"
+                  placeholder="Your Location"
                 /></div>
               </label>
             </div>
@@ -452,22 +496,13 @@ if(res2){
           >
             Upload to IPFS
           </button></div>
-        </form>
-        {cid && <div>CID: {cid}</div>}
+        </form></div></>}
+        {cid && showCidData && <div>CID: {cid}</div>}
         {error && <div>Error: {error}</div>}
         {response && JSON.stringify(response)}
-      </div>)}     
+      </div>)}
+
       <ToastContainer
-position="bottom-right"
-autoClose={5000}
-hideProgressBar={false}
-newestOnTop={false}
-closeOnClick
-rtl={false}
-pauseOnFocusLoss
-draggable
-pauseOnHover
-theme="light"
 />
 <ToastContainer />
     </>
@@ -483,4 +518,3 @@ function append(arg0: {
 }) {
   throw new Error("Function not implemented.");
 }
-

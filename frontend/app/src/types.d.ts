@@ -89,7 +89,7 @@ export type Resume = {
   }[];
   preferredName: string;
   preferredTitle: string;
-  skill_keywords: string[];
+  skillKeywords: string[];
   eoaAttestations: any[];
   attestationData:any[]
   preferredLocation: string;
