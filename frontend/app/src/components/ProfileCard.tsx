@@ -169,18 +169,14 @@ export default function ProfileCard() {
                 <div>
                   <div className=" flex">
                     <div>
-                      {indexedUser ? (
+                      {indexedUser &&
+                      indexedUser.find((item) => item.avatar !== null) ? (
                         <img
                           className="w-44 h-32 rounded-full"
                           src={
-                            indexedUser[0].error !== "Not Found" &&
                             indexedUser.find(
                               (item) => item.avatar !== undefined
-                            )
-                              ? indexedUser.find(
-                                  (item) => item.avatar !== undefined
-                                )!.avatar
-                              : ""
+                            )!.avatar
                           }
                         />
                       ) : (
