@@ -16,9 +16,9 @@ const Navbar = () => {
   const [deviceKey, setDeviceKey] = useState("");
   const { isSignedIn, isConnected } = useWallet();
   return (
-    <nav className="border-gray-200 border-b-2 mb-4">
-      <div className="container mx-auto">
-        <div className="flex justify-between p-4 ">
+    <nav className="border-gray-400 border-b-2 mb-4">
+      <div className="container">
+        <div className="flex justify-between gap-[20px] p-4 ">
           <a href="/" className="flex">
             <img
               src="https://flowbite.com/docs/images/logo.svg"

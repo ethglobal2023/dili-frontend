@@ -76,35 +76,61 @@ sidebar-buttons {
   -webkit-transition: color 0.1s;
   transition: color 0.1s;
 }
-nav li a i {
-  position: relative;
-  z-index: 1;
+:root {
+
+  --secondary-glow: conic-gradient(at 100% 100%, rgb(173,216,230), rgb(135,206,250));
+  /* Alternative color combinations for --third-glow */
+
+  --third-glow: conic-gradient(at 50% 0%, rgb(135,206,250),rgb(173,216,230))
 }
-nav li a .inner {
-  background-color: #20826c;
-  display: block;
-  height: 0;
-  left: 50%;
-  margin: 0;
+
+
+
+
+
+
+.mask {
+  align-items: center;
+  width: 100%;
+  background-repeat: no-repeat;
+  -webkit-mask-repeat: no-repeat;
+  mask-repeat: no-repeat;
+  -webkit-mask-size: 40%;
+  mask-size: 40%;
+  -webkit-mask-position: 50px 0px;
+  mask-position: 50px 0px;
+  background-color: rgb(31, 180, 176);
+  /* color: #34353c; */
+}
+
+
+.landing::before,
+.landing::after {
+  content: '';
   position: absolute;
-  top: 50%;
-  width: 0;
-  -moz-border-radius: 50%;
-  -webkit-border-radius: 50%;
-  border-radius: 50%;
-  -moz-transition: all 0.1s;
-  -o-transition: all 0.1s;
-  -webkit-transition: all 0.1s;
-  transition: all 0.1s;
+  z-index: -1;
+  opacity: 0.8
 }
-nav li a:hover {
-  color: #fff;
+
+.landing::before {
+  background: var(--third-glow);
+  border-radius: 80%;
+  width: 50vw;
+  height: 50vw;
+  margin-left: -200px;
+  filter: blur(90px);
+  top: calc(50vh - 50vw/2);
+  left: calc(50vw);
 }
-nav li a:hover .inner {
-  height: 76px;
-  margin-left: -38px;
-  margin-top: -38px;
-  width: 76px;
+
+.landing::after {
+  background: var(--secondary-glow);
+  border-radius: 80%;
+  width: 50vw;
+  height: 50vw;
+  filter: blur(90px);
+  top: calc(50vh - 50vw/2);
+  left: calc(35vw - 50vw/2);
 }
 
 .card-2 {
