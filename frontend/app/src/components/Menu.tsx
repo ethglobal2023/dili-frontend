@@ -79,7 +79,7 @@ export const Menu = () => {
 
     const clientAddress =  walletClient?.account?.address
 
-    if(client){
+    if( client){
 
 
       const xmtpLoop = async () => {

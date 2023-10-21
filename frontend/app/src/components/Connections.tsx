@@ -24,7 +24,9 @@ function getListOfConnectionRequests(){
 
 export function getApprovedConList():string[] {
   //@ts-ignore
-  return JSON.parse(localStorage.getItem("ApprovedConList")) || [""]
+  let out = JSON.parse(localStorage.getItem("ApprovedConList")) || [""];
+  console.log("🚀 ~ file: Connections.tsx:28 ~ getApprovedConList ~ out:", out)
+  return out;
 }
 
 export function getConReqListForUserApproval():string[] {
@@ -44,7 +46,7 @@ function addConReqListForUserApproval(key:string){
     catch(error){
     console.log("🚀 ~ file: Connections.tsx:34 ~ addConReqListForUserApproval ~  JSON.parse(localStorage.getItem(ConReqListForUserApproval)) failed  error:", error)
     }
-    laststate.push(key);
+    laststate.push(key.toUpperCase());
     let out = [ ...(new Set(laststate))]
     localStorage.setItem("ConReqListForUserApproval",JSON.stringify(out));
 }
@@ -60,7 +62,7 @@ function addConReqToSpamList(key:string){
     catch(error){
     console.log("🚀 ~ file:   JSON.parse(localStorage.getItem(ConReqSpamList)) failed  error:", error)
     }
-    laststate.push(key);
+    laststate.push(key.toUpperCase());
     let out = [ ...(new Set(laststate))]
     localStorage.setItem("ConReqSpamList",JSON.stringify(out));
 }
@@ -85,7 +87,7 @@ function getSpamList():string[]{
 
 function addConToApprovedList(key:string){
 
-  if(!isConnectionApproved(key)){
+  if(!isConnectionApproved(key.toUpperCase())){
   let laststate  = [];
     const b = localStorage.getItem("ApprovedConList")
     try{
@@ -96,19 +98,19 @@ function addConToApprovedList(key:string){
     catch(error){
     console.log("🚀 ~   ~ addConToApprovedList ~  JSON.parse(localStorage.getItem(ApprovedConList)) failed  error:", error)
     }
-    laststate.push(key);
+    laststate.push(key.toUpperCase());
     localStorage.setItem("ApprovedConList",JSON.stringify(laststate));
   }
   //check if the key is in any other list and remove it if it is. 
 
-  removeKeyFromSpamList(key);
-  removeKeyFromWaitingList(key);
+  removeKeyFromSpamList(key.toUpperCase());
+  removeKeyFromWaitingList(key.toUpperCase());
 
 }
 
 function removeKeyFromWaitingList(key:string){
 
-  key=key.toLocaleUpperCase();
+  key=key.toUpperCase();
   let laststate  = [];
     const b = localStorage.getItem("ConReqListForUserApproval")
     try{
@@ -121,7 +123,7 @@ function removeKeyFromWaitingList(key:string){
     console.log("🚀 ~ file: removeKeyFromWaitingList()  error:", error)
     }
        //@ts-ignore
-    laststate= laststate.filter(item => item.toLocaleUpperCase() !== key);
+    laststate= laststate.filter(item => item.toUpperCase() !== key.toUpperCase());
     let out = [ ...(new Set(laststate))]
     localStorage.setItem("ConReqListForUserApproval",JSON.stringify(out));
 
@@ -131,7 +133,7 @@ function removeKeyFromWaitingList(key:string){
 
 function removeKeyFromSpamList(key:string){
 
-  key=key.toLocaleUpperCase();
+  key=key.toUpperCase();
   let laststate  = [];
     const b = localStorage.getItem("ConReqSpamList")
     try{
@@ -144,7 +146,7 @@ function removeKeyFromSpamList(key:string){
     console.log("🚀 ~ file:  removeKeyFromSpamList() failed  error:", error)
     }
        //@ts-ignore
-    laststate= laststate.filter(item => item.toLocaleUpperCase() !== key);
+    laststate= laststate.filter(item => item.toUpperCase() !== key.toUpperCase());
     let out = [ ...(new Set(laststate))]
     localStorage.setItem("ConReqSpamList",JSON.stringify(out));
 
@@ -171,7 +173,7 @@ function isConnectionApproved(peerAddress:string){
 }
 
 
-async function syncConversationlist(list:any,supabase:any){
+export async function syncConversationlist(list:any,supabase:any){
   //@ts-ignore
     list.forEach((c)=>{ syncConversation(c,supabase) })
 }
@@ -196,13 +198,13 @@ function getLocalConvoSync(peerAddress:string,clientAddress:string){
 
  
 function setLocalConvoSync(peerAddress:string,clientAddress:string,data:object){
-  return ( localStorage.setItem(("cr_"+peerAddress+"_clientAddress_"+clientAddress).toLocaleUpperCase(),JSON.stringify(data)) )
+  return ( localStorage.setItem(("cr_"+peerAddress+"_clientAddress_"+clientAddress).toUpperCase(),JSON.stringify(data)) )
 }
 
 function getConStatus(peerAddress:string,clientAddress:string){
   try{
     //@ts-ignore
-  return ( JSON.parse(localStorage.getItem(("cr_"+peerAddress+"_clientAddress_"+clientAddress).toLocaleUpperCase()) ))
+  return ( JSON.parse(localStorage.getItem(("cr_"+peerAddress+"_clientAddress_"+clientAddress).toUpperCase()) ))
   }
   catch(error){
     console.log("🚀 ~ file: Connections.tsx:142 ~ getConStatus ~ error:", error)
@@ -240,10 +242,10 @@ export async function syncConversation(convo:any,supabase:any, ignoreLocal=false
       let m5res = await convo.messages({limit:5,direction:2});
       console.log("m5res=",m5res)
       //@ts-ignore
-      clientReplied = m5res?.filter((a)=> (a.senderAddress.toLocaleUpperCase()===clientAddress) && !xmsgcontent(a).includes("auto reply"))?.length>0 ? true : false;
+      clientReplied = m5res?.filter((a)=> (a.senderAddress.toUpperCase()===clientAddress) && !xmsgcontent(a).includes("auto reply"))?.length>0 ? true : false;
 
       //@ts-ignore
-      anyClientRepliedEvenAuto = m5res?.filter((a)=> (a.senderAddress.toLocaleUpperCase()===clientAddress))?.length>0 ? true : false;
+      anyClientRepliedEvenAuto = m5res?.filter((a)=> (a.senderAddress.toUpperCase()===clientAddress))?.length>0 ? true : false;
 
       console.log("🚀 ~ file: Connections.tsx:245 ~ syncConversation ~ clientReplied:", clientReplied)
 
@@ -382,7 +384,7 @@ export async function syncConversation(convo:any,supabase:any, ignoreLocal=false
         //@ts-ignore 
         newc.autoFilterState="spam"
         addConReqToSpamList(peerAddress);
-        if(!anyClientRepliedEvenAuto&& lastAutoReplyDest.toLocaleUpperCase()!==peerAddress.toLocaleUpperCase()){
+        if(!anyClientRepliedEvenAuto&& lastAutoReplyDest.toUpperCase()!==peerAddress.toUpperCase()){
           lastAutoReplyDest=peerAddress;
           await convo.send("I likley won't see this message because there was no public annonymized announcement of this connection request found. Most likely your using an XMTP client which has not implemented the DiLi decentralized spam protection standard. You could install DiLi or try to get incontact with me on another channel mentioning your xmtp address so I can whitelist you. ( auto reply ).") 
         }
@@ -391,7 +393,7 @@ export async function syncConversation(convo:any,supabase:any, ignoreLocal=false
       //@ts-ignore 
         newc.autoFilterState="spam"
         addConReqToSpamList(peerAddress);
-        if(!anyClientRepliedEvenAuto&& lastAutoReplyDest.toLocaleUpperCase()!==peerAddress.toLocaleUpperCase()){
+        if(!anyClientRepliedEvenAuto&& lastAutoReplyDest.toUpperCase()!==peerAddress.toUpperCase()){
           lastAutoReplyDest=peerAddress;
           await convo.send("This chat request has suprassed my confiugred max connection requests per month and will not show up on my device. Please try me again next month when your messaging volume is lower. ( auto reply ).")
         }
@@ -401,7 +403,7 @@ export async function syncConversation(convo:any,supabase:any, ignoreLocal=false
         addConReqListForUserApproval(peerAddress);
           //@ts-ignore 
         newc.autoFilterState="ok";
-        if(!anyClientRepliedEvenAuto&& lastAutoReplyDest.toLocaleUpperCase()!==peerAddress.toLocaleUpperCase()){
+        if(!anyClientRepliedEvenAuto&& lastAutoReplyDest.toUpperCase()!==peerAddress.toUpperCase()){
           lastAutoReplyDest=peerAddress;
           await convo.send(`Thanks for your connection request. Due to my current high workload it may take some time for me to get back to you. If you could first have a call with my account manager they could find a spot in my calendar and make sure I am the right fit for your project. Please get in contact here: https://calendly.com/copro-onboarding. Note: this was an auto reply.`)
         }
@@ -414,7 +416,7 @@ export async function syncConversation(convo:any,supabase:any, ignoreLocal=false
         //@ts-ignore
         newc.autoFilterState="ok"
 
-        if(!anyClientRepliedEvenAuto && lastAutoReplyDest.toLocaleUpperCase()!==peerAddress.toLocaleUpperCase()){
+        if(!anyClientRepliedEvenAuto && lastAutoReplyDest.toUpperCase()!==peerAddress.toUpperCase()){
           lastAutoReplyDest=peerAddress;
           await convo.send(`Thanks for your connection request. In case you would like to talk about a new consulting project feel free to directly book into my calender   https://calendly.com/wolffr . Note: this was an auto reply.`)
         }
@@ -453,10 +455,10 @@ const Connections = () => {
       
       console.log("🚀 ~ file: Connections.tsx:399 ~ clientAddress ~ ",clientAddress)
     console.log("🚀 ~ file: Connections.tsx:399 ~ getConStatusMini ~ clientAddress:", clientAddress)
-      console.log("🚀 ~ file: Connections.tsx:399 ~ getConStatusMini ~ "+("cr_"+peerAddress+"_clientAddress_"+clientAddress).toLocaleUpperCase())
+      console.log("🚀 ~ file: Connections.tsx:399 ~ getConStatusMini ~ "+("cr_"+peerAddress+"_clientAddress_"+clientAddress).toUpperCase())
 
  //@ts-ignore
-    return ( JSON.parse(localStorage.getItem(("cr_"+peerAddress+"_clientAddress_"+clientAddress).toLocaleUpperCase()) ))
+    return ( JSON.parse(localStorage.getItem(("cr_"+peerAddress+"_clientAddress_"+clientAddress).toUpperCase()) ))
     }
     catch(error){
       console.log("🚀 ~ file: Connections.tsx:142 ~ getConStatus ~ error:", error)
@@ -492,7 +494,7 @@ const Connections = () => {
 
   const acceptClickHandler = (key:string) => {
     return (event: React.MouseEvent) => {
-      addConToApprovedList(key)
+      addConToApprovedList(key.toUpperCase())
       setCount(1+count)
      event.preventDefault();
     }
@@ -500,7 +502,7 @@ const Connections = () => {
 
   const rejectClickHandler = (key:string) => {
     return (event: React.MouseEvent) => {
-      addConReqToSpamList(key)
+      addConReqToSpamList(key.toUpperCase())
       setCount(1+count)
       event.preventDefault();
     }

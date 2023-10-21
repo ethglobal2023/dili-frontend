@@ -11,9 +11,11 @@ type ConversationsProps = {
 };
 
 
-function getApprovedConList():string[] {
+export function getApprovedConList():string[] {
   //@ts-ignore
-  return (JSON.parse(localStorage.getItem("ApprovedConList")) || [""]).map(a=>a.toLocaleUpperCase())
+  let out = JSON.parse(localStorage.getItem("ApprovedConList")) || [""];
+  console.log("🚀 ~ file: Conversations.tsx:17 ~ getApprovedConList ~ out:", out)
+  return out;
 }
 
 
@@ -32,7 +34,8 @@ export const Conversations: React.FC<ConversationsProps> = ({
   useStreamConversations();
   console.log("getApprovedConList():",getApprovedConList())
   console.log("conversationsconversations: ",conversations)
-  const conversations_f=conversations.filter((x)=>getApprovedConList().includes(x.peerAddress.toLocaleUpperCase()))
+  const conversations_f=conversations.filter((x)=>getApprovedConList().includes(x.peerAddress.toUpperCase()))
+
   console.log("conversations_f:",conversations_f)
   const previews = conversations_f.map((conversation) => (
     <ConversationCard
