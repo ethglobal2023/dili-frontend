@@ -16,6 +16,7 @@ import axios from "axios";
 import SocialBadge from "./SocialBadge";
 import Loading from "./Loading";
 import Avatar, { genConfig } from "react-nice-avatar";
+import { MdOutlineLocationOn } from "react-icons/md";
 // import Avatar, { genConfig } from "react-nice-avatar";
 export default function ProfileCard() {
   const { cid } = useParams();
@@ -33,7 +34,7 @@ export default function ProfileCard() {
     setCurrentImage(event.target.files[0]);
   };
 
-
+  let stageCid = cid;
   //@Sakshi, this is the logic for fetching the resume from IPFS
   const [error, setError] = useState("");
   const [fetchedProfile, setFetchedProfile] = useState<Resume>();
@@ -58,7 +59,6 @@ export default function ProfileCard() {
     const fetchProfile = async () => {
       try {
         setLoading(true);
-        let stageCid = cid;
 
         if (!stageCid) {
           console.log("No cid provided");
@@ -141,8 +141,10 @@ export default function ProfileCard() {
     );
   }
   let config;
+  let skillKeywords;
   if (fetchedProfile) {
     config = genConfig(fetchedProfile?.firstName + fetchedProfile?.lastName);
+    skillKeywords = fetchedProfile?.skillKeywords?.split(',');
   }
 
 
@@ -159,7 +161,7 @@ export default function ProfileCard() {
           <IoMdArrowBack className="mt-1" />
           <p>Back</p>
         </div>
-        <div className=" flex gap-[32px]">
+        <div className=" w-full flex flex-row justify-center">
           <FileUploadModal
             getImage={getImage}
             uploadImage={uploadImage}
@@ -169,15 +171,15 @@ export default function ProfileCard() {
             progress={progress}
           />
           <div className="ml-10">
-            <div className="  text-gray-800 font-montserrat h-fit mt-12 w-[700px] lg:p-10 p-6  card rounded-xl ">
-              <div className="profile-info">
+            <div className="  text-gray-800 font-montserrat w-full h-fit justify-center mt-12  lg:p-10 p-6  card rounded-xl ">
+              <div className="">
                 <div>
-                  <div className=" flex">
-                    <div>
+                  <div className=" ">
+                    <div className="w-full flex justify-center">
                       {indexedUser &&
                       indexedUser.find((item) => item.avatar !== null) ? (
                         <img
-                          className="w-44 h-32 rounded-full"
+                          className="w-44 h-32 rounded-lg "
                           src={
                             indexedUser.find(
                               (item) => item.avatar !== undefined
@@ -187,18 +189,41 @@ export default function ProfileCard() {
                       ) : (
                         <Avatar
                           style={{ width: "8rem", height: "8rem" }}
-                          className="rounded-full"
+                          className=""
                           {...config}
                         />
                       )}
                     </div>
-                    <div className="w-full flex justify-end mt-6 py-6">
+                    <h3 className=" text-[18px] font-sans font-bold text-gray-600 mt-4 text-center">
+                        {fetchedProfile?.firstName} {fetchedProfile?.lastName}
+                      </h3>
+                      <p className=" text-[16px] mt-2 font-sans font-medium text-gray-500 text-center">
+                        {fetchedProfile?.preferredTitle}
+                      </p>
+                      <p className=" text-[16px] font-sans mt-2  text-gray-500 text-center flex justify-center">
+                      <MdOutlineLocationOn className="h-6 w-6"/> {fetchedProfile?.preferredLocation}
+                      </p>
+                      {stageCid !== "self" &&<div className="w-full flex justify-center mt-4">
+                      <Link
+                        to=""
+                        state={{ profileData: fetchedProfile }}
+                      >
+                        <button
+                          className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center "
+                          type="button"
+                        
+                        >
+                          Connect
+                        </button>
+                      </Link>
+                    </div>}
+                    {stageCid === "self" &&<div className="w-full flex justify-center mt-4">
                       <Link
                         to="/profileEdit"
                         state={{ profileData: fetchedProfile }}
                       >
                         <button
-                          className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
+                          className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center "
                           type="button"
                           onClick={() => {
                             navigate("/profileEdit");
@@ -207,26 +232,26 @@ export default function ProfileCard() {
                           Edit profile
                         </button>
                       </Link>
-                    </div>
+                    </div>}
                   </div>
-                  <div className="w-full flex justify-between gap-[215px]">
-                    {" "}
-                    <div className="">
-                      {" "}
-                      <h3 className=" text-[18px] font-sans font-bold text-gray-600 mt-2">
-                        {fetchedProfile?.firstName} {fetchedProfile?.lastName}
-                      </h3>
-                      <p className=" text-[16px] font-sans font-medium text-gray-500">
+                  <p className=" text-[16px] font-sans font-medium text-gray-500 text-center mt-2">
                         {fetchedProfile?.description}
                       </p>
-                      <p className=" text-[16px] font-sans  text-gray-500 ">
-                        {fetchedProfile?.preferredLocation}
-                      </p>
-                      <p className=" text-[16px] font-sans  text-gray-500 ">
-                        <span className="font-bold">Skills</span>:&nbsp;
-                        {fetchedProfile?.skillKeywords}
-                      </p>
-                    </div>
+                  <div className="w-full flex justify-center ">
+                    {" "}
+                    
+                     
+                      
+                      
+                      <div className="flex flex-wrap gap-2 ">
+        {skillKeywords &&
+          skillKeywords.map((skill:any, index:any) => (
+            <div key={index} className="text-gray-800 border-4 border-blue-300 mt-6 hover:border-gradient-to-br focus:ring-4 focus:outline-none shadow-lg   font-medium rounded-2xl text-sm px-5 py-2.5 text-center mr-2 mb-2">
+              {skill.trim()}
+            </div>
+          ))}
+      </div>
+                    
                   </div>
                 </div>
               </div>
@@ -278,8 +303,7 @@ export default function ProfileCard() {
                   </div>
                 )}
             </div>
-          </div>
-          {fetchedProfile?.attestationData &&
+            {fetchedProfile?.attestationData &&
             fetchedProfile?.attestationData?.map(
               (attestation: any, key: any) => {
                 const message = JSON.parse(attestation?.decodedDataJson);
@@ -302,12 +326,12 @@ export default function ProfileCard() {
                           Chain ID: {attestation?.chainID}
                         </p>
                       </a>
-                      <div className=" flex gap-2 mb-[4px]">
+                      <div className="  gap-2 mb-[4px] flex justify-center">
                         <p className="text-[16px] font-sans font-bold text-gray-700 ">
                           Data:{" "}
                         </p>
                         <div>
-                          <p className=" text-[16px] font-sans  text-gray-600 ">
+                          <p className=" text-[16px] font-sans   text-gray-600 ">
                             Message: {message[0]?.value.value}
                           </p>
                           <p className=" text-[16px] font-sans  text-gray-600 ">
@@ -318,7 +342,7 @@ export default function ProfileCard() {
                           </p>
                         </div>
                       </div>
-                      <div className=" flex gap-2 mb-[4px]">
+                      <div className=" flex gap-2 mb-[4px] justify-center">
                         <p className=" text-[16px] font-sans font-bold text-gray-600 ">
                           Attester:{" "}
                         </p>
@@ -330,7 +354,7 @@ export default function ProfileCard() {
                           </p>
                         </div>
                       </div>
-                      <div className=" flex gap-2 mb-[4px]">
+                      <div className=" flex gap-2 mb-[4px] justify-center">
                         <p className="text-[16px] font-sans font-bold text-gray-700 ">
                           Issued:{" "}
                         </p>
@@ -340,7 +364,7 @@ export default function ProfileCard() {
                           </p>
                         </div>
                       </div>
-                      <div className=" flex gap-2 mb-[4px]">
+                      <div className=" flex gap-2 mb-[4px] justify-center">
                         <p className="text-[16px] font-sans font-bold text-gray-700 ">
                           Expires:{" "}
                         </p>
@@ -364,6 +388,8 @@ export default function ProfileCard() {
                 );
               }
             )}
+          </div>
+         
         </div>
       </div>
       
