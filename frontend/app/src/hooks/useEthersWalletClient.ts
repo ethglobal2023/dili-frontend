@@ -34,7 +34,7 @@ const useEthersWalletClient = (): {
     getAddress: async (): Promise<Address> => {
       return isSignedIn
         ? account?.address ?? ZERO_ADDRESS
-        : walletClient?.account.address ?? ZERO_ADDRESS;
+        : walletClient?.account?.address ?? ZERO_ADDRESS;
     },
     signMessage: async (message: string): Promise<string> => {
       const signature = isSignedIn

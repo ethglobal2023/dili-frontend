@@ -106,7 +106,7 @@ const constconnectReq = async (
   if (!client) {
     toast(`Please connect to XMTP`, {
       position: "bottom-right",
-      autoClose: 10000,
+      autoClose: 5000,
       hideProgressBar: false,
       closeOnClick: true,
       pauseOnHover: true,
@@ -138,6 +138,17 @@ const constconnectReq = async (
   //     message: connection_message_hash,
   //   });
   const signature = await walletClient?.signMessage(connection_message_hash);
+
+  toast.success(`Connection request sent!`, {
+    position: "bottom-right",
+    autoClose: 5000,
+    hideProgressBar: false,
+    closeOnClick: true,
+    pauseOnHover: true,
+    draggable: true,
+    progress: undefined,
+    theme: "light",
+  });
 
   const url =
     "http://" + clientPreferedEngine + "dili/announceconnectionrequest";

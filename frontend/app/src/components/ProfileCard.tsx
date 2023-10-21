@@ -92,6 +92,7 @@ export default function ProfileCard() {
         const user = response.data;
         console.log("user", user);
         setIndexedUser(user);
+        setLoading(false);
       } catch (error) {
         console.error("Error fetching user data:", error);
       }
@@ -283,7 +284,7 @@ export default function ProfileCard() {
             overflow-hidden
             ${"bg-white"}
             rounded-lg
-            w-[600px]
+            w-[650px]
             shadow-lg 
             p-4  
             `}
@@ -322,14 +323,18 @@ export default function ProfileCard() {
                         </div>
                         <div className="flex flex-col text-center gap-1">
                           <h3 className=" text-[18px] font-sans font-bold tracking-tighter text-gray-600 mt-2">
-                            {fetchedProfile?.firstName}{" "}
-                            {fetchedProfile?.lastName}
+                            {indexedUser &&
+                            indexedUser[0].error! !== "Not Found"
+                              ? `${indexedUser[0].displayName}`
+                              : `${fetchedProfile?.firstName} ${fetchedProfile?.lastName}`}
                           </h3>
                           <h2 className="tracking-tighter">
                             {fetchedProfile?.preferredTitle!}
                           </h2>
                           <div className="flex gap-1 items-center justify-center">
-                            <CiLocationOn size={16} />
+                            {fetchedProfile?.preferredLocation && (
+                              <CiLocationOn size={16} />
+                            )}
 
                             <p className=" text-[16px] tracking-tighter font-sans  text-gray-500 ">
                               {fetchedProfile?.preferredLocation}
@@ -492,7 +497,10 @@ export default function ProfileCard() {
                       <div className="w-full flex items-center text-center justify-center flex-col">
                         {" "}
                         <p className=" text-[16px] leading-normal font-sans font-medium text-gray-500">
-                          {fetchedProfile?.description}
+                          {fetchedProfile?.description ||
+                            indexedUser?.find((data) => data.description)
+                              ?.description ||
+                            "No description available"}
                         </p>
                         <div className=" flex flex-wrap items-center justify-center tracking-tight mt-2 gap-1.5 text-[16px] font-sans  text-gray-500 ">
                           {/* <span className="font-bold">Skills</span>:&nbsp; */}
@@ -513,6 +521,50 @@ export default function ProfileCard() {
                 </div>
               </Card>
             </div>
+
+            {indexedUser && indexedUser[0].error! !== "Not Found" && (
+              <div className="flex text-center  justify-around text-gray-800 font-montserrat h-fit w-[700px] lg:p-10 p-6  card rounded-xl">
+                {indexedUser!.map((data) => {
+                  const platform = data.platform.toLocaleLowerCase();
+                  const links = data.links;
+
+                  let link = null;
+                  let description = null;
+
+                  // Iterate through the properties of the 'links' object
+                  for (const key in links) {
+                    if (
+                      links.hasOwnProperty(key) &&
+                      key.toLocaleLowerCase() === platform
+                    ) {
+                      link = links[key];
+                      break;
+                    }
+                  }
+
+                  // If no matching link was found, use the first link available
+                  if (!link) {
+                    for (const key in links) {
+                      if (links.hasOwnProperty(key)) {
+                        link = links[key];
+                        break;
+                      }
+                    }
+                  }
+
+                  // If no matching link was found, use the first link available
+
+                  return (
+                    <SocialBadge
+                      key={platform}
+                      icon={platform}
+                      link={link ? link.link : ""}
+                      handle={data.identity}
+                    />
+                  );
+                })}
+              </div>
+            )}
 
             {/* <div className="text-gray-800 font-montserrat h-fit mt-12 w-[700px] lg:p-10 p-6  card rounded-xl">
               {fetchedProfile?.organization &&
@@ -568,6 +620,10 @@ export default function ProfileCard() {
                     console.log("307 attestation, key", key);
 
                     const message = JSON.parse(attestation?.decodedDataJson);
+                    console.log(
+                      "🚀 ~ file: ProfileCard.tsx:571 ~ ProfileCard ~ message:",
+                      attestation
+                    );
                     // console.log(
                     //   "🚀 ~ file: ProfileCard.tsx:310 ~ ProfileCard ~ message:",
                     //   message
@@ -594,67 +650,84 @@ export default function ProfileCard() {
             transform hover:scale-105`}
                         >
                           <div className=" p-4  rounded-[calc(var(--card-radius)-var(--card-padding))] border-blue-300">
-                            <div className="w-full text-center">
-                              <h5 className="mb-2 text-2xl font-semibold tracking-tight text-gray-900 ">
+                            <div className="w-full  flex flex-col items-center text-center">
+                              <h5 className="mb-2 text-2xl tracking-tighter font-semibold  text-gray-900 ">
                                 Attestation {key + 1}
                               </h5>
-                              <p className=" text-[16px] font-sans  text-gray-600 ">
-                                Chain:{" "}
-                                {attestation?.chainID == 10
-                                  ? "Optimism"
-                                  : "Mainnet"}
-                              </p>
-                            </div>
-                            <div className=" flex gap-2 mb-[4px]">
-                              <p className="text-[16px] font-sans font-bold text-gray-700 ">
-                                Data:{" "}
-                              </p>
-                              <div>
+                              <div className="flex gap-2 mb-2">
                                 <p className=" text-[16px] font-sans  text-gray-600 ">
+                                  Chain:{" "}
+                                </p>
+                                <span>
+                                  <img
+                                    alt="chain"
+                                    className="w-6 h-6"
+                                    src={`/src/assets/${
+                                      attestation?.chainID == 10
+                                        ? "optimism"
+                                        : "ethereum"
+                                    }.svg`}
+                                  />
+                                </span>
+                              </div>
+                            </div>
+                            <div className=" w-full justify-between items-end text-end flex gap-2 mb-2 mt-4">
+                              <p className="text-[16px] w-1/4 font-sans font-bold text-gray-700 ">
+                                Recipient:
+                              </p>
+                              {/* <p className=" text-[16px] font-sans  text-gray-600 ">
                                   Message:{" "}
                                   {message[0]?.value?.value?.hex &&
                                     BigInt(
                                       message[0]?.value?.value?.hex!
                                     ).toString()}
-                                </p>
-                                <p className=" text-[16px] font-sans  text-gray-600 ">
-                                  Recipient:{" "}
-                                  {attestation?.recipient.slice(0, 4) +
-                                    "...." +
-                                    attestation?.recipient.slice(-4)}
-                                </p>
-                              </div>
+                                </p> */}
+                              <a
+                                href={`https://optimism.easscan.org/address/${attestation?.recipient}`}
+                                target="_blank"
+                                className=" text-[16px] w-3/4 underline font-sans  text-gray-600 "
+                              >
+                                {attestation?.recipient.slice(0, 4) +
+                                  "...." +
+                                  attestation?.recipient.slice(-4)}
+                              </a>
                             </div>
-                            <div className=" flex gap-2 mb-[4px]">
-                              <p className=" text-[16px] font-sans font-bold text-gray-600 ">
+                            <div className=" w-full justify-between  flex gap-2 mb-[4px]">
+                              <p className=" text-[16px] w-1/4 font-sans  font-bold text-gray-600 ">
                                 Attester:{" "}
                               </p>
                               <div>
-                                <p className=" text-[16px] font-sans  text-gray-600 ">
+                                <a
+                                  href={`https://optimism.easscan.org/address/${attestation?.attester}`}
+                                  target="_blank"
+                                  className=" text-[16px] w-3/4 underline font-sans  text-gray-600 "
+                                >
                                   {attestation?.attester.slice(0, 4) +
                                     "...." +
                                     attestation?.attester.slice(-4)}
-                                </p>
+                                </a>
                               </div>
                             </div>
-                            <div className=" flex gap-2 mb-[4px]">
-                              <p className="text-[16px] font-sans font-bold text-gray-700 ">
+                            <div className="w-[100%] flex  justify-between gap-2 mb-[4px]">
+                              <p className="text-[16px] 1/4 font-sans font-bold text-gray-700 ">
                                 Issued:{" "}
                               </p>
                               <div>
-                                <p className=" text-[16px] font-sans  text-gray-600 ">
+                                <p className=" text-[16px] 3/4 font-sans  text-gray-600 ">
                                   {formattedDate}
                                 </p>
                               </div>
                             </div>
-                            <div className=" flex gap-2 mb-[4px]">
-                              <p className="text-[16px] font-sans font-bold text-gray-700 ">
+                            <div className="w-full  justify-between items-end text-end flex gap-2 mb-[4px]">
+                              <p className="text-[16px] 1/4 font-sans font-bold text-gray-700 ">
                                 Expires:{" "}
                               </p>
                               <div>
-                                <p className=" text-[16px] font-sans  text-gray-600 ">
+                                <p className=" text-[16px] 3/4 font-sans  text-gray-600 ">
                                   {" "}
-                                  {attestation?.expirationTime}
+                                  {attestation?.expirationTime === 0
+                                    ? "Never"
+                                    : attestation?.expirationTime}
                                 </p>
                               </div>
                             </div>

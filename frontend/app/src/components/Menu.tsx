@@ -131,6 +131,8 @@ export const Menu = () => {
         setAddress(clientAddress);
         try {
           const stream = await client.conversations.stream();
+          console.log("🚀 ~ file: Menu.tsx:134 ~ xmtpLoop ~ stream:", stream);
+          console.log("🚀 ~ file: Menu.tsx:135 ~ xmtpLoop ~ client:", client);
           let last_reacted_convo = "";
           for await (const conversation of stream) {
             console.log(
