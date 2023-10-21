@@ -16,8 +16,8 @@ const Navbar = () => {
   const [deviceKey, setDeviceKey] = useState("");
   const { isSignedIn, isConnected } = useWallet();
   return (
-    <nav className="border-gray-200 border-b-2 mb-4">
-      <div className="container mx-auto">
+    <nav className="  border-gray-200 border-b-2 mb-4">
+      <div className="container  mx-auto">
         <div className="flex justify-between p-4 ">
           <a href="/" className="flex">
             {/* <img

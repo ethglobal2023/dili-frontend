@@ -42,6 +42,7 @@ import { Theme } from "@radix-ui/themes";
 import { Resume } from "./types";
 import { FileCache } from "./cache";
 import { ResumeCache } from "./contexts/FileCacheContext";
+import { BrowserRouter } from "react-router-dom";
 
 const DB_VERSION = 1;
 
@@ -105,7 +106,9 @@ createRoot(document.getElementById("root") as HTMLElement).render(
                   <Navbar />
                   <div className="">
                     <RequireWalletConnected>
-                      <App />
+                      <BrowserRouter>
+                        <App />
+                      </BrowserRouter>
                     </RequireWalletConnected>
                   </div>
                 </XMTPProvider>

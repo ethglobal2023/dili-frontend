@@ -19,7 +19,7 @@
   /* width: 75%; */
   /* flex-grow: 1; */
   display: flex;
-  min-height: 0;
+  max-height: 85vh;
 }
 
 .InboxConversations__list {

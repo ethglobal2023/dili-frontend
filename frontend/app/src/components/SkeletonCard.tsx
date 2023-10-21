@@ -7,7 +7,7 @@ const SkeletonCard: React.FC<ISkeletonCard> = ({}) => {
     <div className="flex justify-center mt-[72px] bg-white w-[1100px]">
       <div
         role="status"
-        className="relative w-[60%] p-4 border h-[500px] border-gray-200 rounded shadow animate-pulse md:p-6 dark:border-gray-700"
+        className="relative w-[590px] p-4 border h-[500px] border-gray-200 rounded shadow animate-pulse md:p-6 dark:border-gray-700"
       >
         <div className="flex items-center justify-center w-full ">
           <div className="flex items-center justify-center w-32 h-32 mb-4 bg-gray-300 rounded">
