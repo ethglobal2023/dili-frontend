@@ -80,11 +80,11 @@ export const App: React.FC = () => {
     );
   };
   return (
-    <div className="  w-full h-[100vh] bg-[#f7f7f7]  ">
-      <div className="InboxConversations">
+    <div className="  w-full h-[100vh] bg-white  ">
+      <div className="InboxConversations ">
         <BrowserRouter>
           {/*<SideBar />*/}
-          <div className="InboxConversations__list overflow-y-hidden  border-r-[3px]">
+          <div className=" h-[100vh] overflow-x-hidden bg-white w-[400px] overflow-y-hidden  border-r-[3px]">
             <Menu />
             <Routes>
               {["/", "/messages"].map((path, index) => {
@@ -126,7 +126,7 @@ export const App: React.FC = () => {
                   key={index}
                   element={
                     <RequireXMTPConnected>
-                      <div className="InboxConversations__messages">
+                      <div className="InboxConversations__messages max-w-[1100px] mx-auto">
                         {isNewMessage ? (
                           <NewMessage
                             onSuccess={handleStartNewConversationSuccess}

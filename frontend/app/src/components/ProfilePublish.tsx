@@ -198,7 +198,7 @@ export function ProfilePublish() {
       {loading ? (
         <Loading />
       ) : (
-        <div className="flex flex-col min-h-screen h-fit  w-[60%] bg-white justify-center align-middle">
+        <div className="flex flex-col min-h-screen h-fit  w-[1050px] bg-white justify-center align-middle">
           {!showCidData && (
             <>
               {" "}

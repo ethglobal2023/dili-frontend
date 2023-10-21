@@ -40,11 +40,12 @@ export default function ProfileCard() {
   const [modalOpen, setModalOpen] = useState(false);
   // const { address: walletAddress } = useWallet();
   const { data: walletClient } = useEthersWalletClient();
-  const [loading, setLoading] = useState(true);
+  const [loading, setLoading] = useState(false);
   const [address, setAddress] = useState("");
   const [scores, setScores] = useState<Scores>();
   const supabase = useContext(SupabaseContext);
   const { client } = useClient();
+  console.log("🚀 ~ file: ProfileCard.tsx:48 ~ ProfileCard ~ client:", client);
 
   const resumeCache = useResumeCache();
 
@@ -210,7 +211,7 @@ export default function ProfileCard() {
       {loading ? (
         <SkeletonCard />
       ) : (
-        <div className="flex justify-center bg-white ">
+        <div className="flex justify-center bg-white w-[1100px]">
           <div
             className="flex text-[#73b6ff] text-[18px] mt-5 ml-5 font-semibold cursor-pointer"
             onClick={() => {

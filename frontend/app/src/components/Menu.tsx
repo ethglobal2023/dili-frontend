@@ -57,6 +57,7 @@ export const Menu = () => {
           <Route path="/connections" element={<div>Connections</div>} />
           <Route path="/admin" element={<div>Admin</div>} />
           <Route path="/profile/:address" element={<div>Profile</div>} />
+          <Route path="/publish" element={<div>Profile</div>} />
           <Route path="/settings" element={<div>Settings</div>} />
         </Routes>
       </div>
@@ -74,9 +75,9 @@ export const Menu = () => {
               "menu-icon absolute left-0 top-0 outline-red-500 outline-1 outline-dashed "
             }
           /> */}
-          {approveListCnt && approveListCnt > 1 && (
+          {/* {approveListCnt && approveListCnt > 1 && (
             <div className="w-1.5 h-1.5 relative left-4  bottom-2 bg-red-800 rounded-full"></div>
-          )}
+          )} */}
           <AiOutlineUsergroupAdd className={"menu-icon"} />
         </MenuIcon>
         <MenuIcon tooltip={"My Profile"} link={"/profile/self"}>
