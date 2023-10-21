@@ -1,6 +1,3 @@
-
-
-
 .InboxHeader__xmtp {
   flex: 0 0 var(--sidebar-width);
   display: flex;
@@ -15,17 +12,19 @@
   display: flex;
   align-items: center;
   justify-content: space-between;
-  flex-grow: 1;
+  width: 75%;
 }
 
 .InboxConversations {
-  flex-grow: 1;
+  /* width: 75%; */
+  /* flex-grow: 1; */
   display: flex;
   min-height: 0;
 }
 
 .InboxConversations__list {
   overflow-y: hidden;
+  overflow-x: hidden;
   flex: 0 0 var(--sidebar-width);
   height: inherit;
   min-height: 100vh;
@@ -35,13 +34,18 @@
 
 .InboxConversations__messages {
   flex-grow: 1;
+  /* width: 80%;1 */
   display: flex;
   background-color: white !important;
   flex-direction: column;
+  max-width: 1100px;
 }
 
 .InboxConversations__messages > :nth-child(2) {
+  /* width: 800px; */
+  /* width: 75%; */
   flex-grow: 1;
+
   overflow: auto;
 }
 
@@ -137,7 +141,12 @@ sidebar-buttons {
   max-width: 800px !important;
   position: relative;
   padding: 25px;
-  box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.01), 0px 37px 22px rgba(0, 0, 0, 0.05), 0px 29px 29px rgba(0, 0, 0, 0.09), 0px 10px 21px rgba(0, 0, 0, 0.1), 0px 0px 0px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0px 15px 20px rgba(0, 0, 0, 0.01),
+    0px 37px 22px rgba(0, 0, 0, 0.05),
+    0px 29px 29px rgba(0, 0, 0, 0.09),
+    0px 10px 21px rgba(0, 0, 0, 0.1),
+    0px 0px 0px rgba(0, 0, 0, 0.1);
   border-radius: 23px;
   transition: all 0.8s cubic-bezier(0.15, 0.83, 0.66, 1);
   margin-bottom: 45px;

@@ -223,6 +223,7 @@ export const Search: FC = () => {
             rounded
             w-96 
             shadow-lg 
+            
             p-4  
             transition-transform 
             transform hover:scale-105`}
@@ -230,12 +231,14 @@ export const Search: FC = () => {
             <div
               className={`flex 
               items-center 
+              justify-between
               space-x-4`}
             >
               <Link
                 className={`flex 
                   items-center 
                   space-x-4
+                  w-2/3
                   ${"bg-white"}
                   `}
                 to={`/profile/${user.pk}`}
@@ -248,16 +251,16 @@ export const Search: FC = () => {
 
                   <AvatarFallback>CN</AvatarFallback>
                 </Avatar>
-              </Link>
-              <div className="flex ">
                 <div className="flex flex-col w-1/2">
                   <span className="text-xl tracking-tighter">
                     {user.preferredname || user.address || "Anonymous User"}
                   </span>{" "}
                   <span className="text-sm tracking-tight text-gray-500 truncate w-full">
-                    {user.preferredtitle?.trim()}
+                    {user.preferredtitle?.slice(0, 24)}
                   </span>
                 </div>
+              </Link>
+              <div className="flex ">
                 <button
                   onClick={clickHandler(user.address, walletClient, client)}
                   className="px-4 w-fit mt-1 h-fit hover:scale-105 transition duration-200 text-lg rounded-xl font-semibold tracking-tighter bg-[#0e76fd] text-white py-1.5"

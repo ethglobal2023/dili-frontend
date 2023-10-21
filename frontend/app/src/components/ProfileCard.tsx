@@ -1,19 +1,27 @@
 import React, {useContext, useEffect, useState} from "react";
 import FileUploadModal from "./FileUpload";
+import {Card} from "../../@/components/ui/card";
+import {Tooltip, TooltipContent, TooltipProvider, TooltipTrigger,} from "../../@/components/ui/tooltip";
 import "./ProfileCard.css";
 import {Link, useNavigate, useParams} from "react-router-dom";
 import {IndexedUser, Resume, Scores} from "../types";
 import {ipfsDownload} from "../ipfs";
 import {IoMdArrowBack} from "react-icons/io";
+import {CiLocationOn} from "react-icons/ci";
 import "./App.css";
 import {SupabaseContext} from "../contexts/SupabaseContext";
 import {useResumeCache} from "../contexts/FileCacheContext";
 import {useClient} from "@xmtp/react-sdk";
-import axios from "axios";
-import Avatar, {genConfig} from "react-nice-avatar";
-import useEthersWalletClient from "../hooks/useEthersWalletClient";
-import {MdOutlineLocationOn} from "react-icons/md";
 
+// import { useWallet } from "../hooks/useWallet";
+// import { SupabaseContext } from "../contexts/SupabaseContext";
+// import { useResumeCache } from "../contexts/FileCacheContext";
+import axios from "axios";
+import {genConfig} from "react-nice-avatar";
+import useEthersWalletClient from "../hooks/useEthersWalletClient";
+import {clickHandler} from "./Search";
+import SkeletonCard from "./SkeletonCard";
+// import Avatar, { genConfig } from "react-nice-avatar";
 export default function ProfileCard() {
     const {cid} = useParams();
     const navigate = useNavigate();
@@ -27,6 +35,7 @@ export default function ProfileCard() {
     const [scores, setScores] = useState<Scores>();
     const supabase = useContext(SupabaseContext);
     const {client} = useClient();
+    console.log("🚀 ~ file: ProfileCard.tsx:48 ~ ProfileCard ~ client:", client);
 
     const resumeCache = useResumeCache();
 
@@ -34,6 +43,7 @@ export default function ProfileCard() {
         setCurrentImage(event.target.files[0]);
     };
 
+    //@Sakshi, this is the logic for fetching the resume from IPFS
     const [error, setError] = useState("");
     const [fetchedProfile, setFetchedProfile] = useState<Resume>();
     const [indexedUser, setIndexedUser] = useState<IndexedUser[]>();
@@ -185,247 +195,323 @@ export default function ProfileCard() {
     }
 
     let config;
-    let skillKeywords;
     if (fetchedProfile) {
         config = genConfig(fetchedProfile?.firstName + fetchedProfile?.lastName);
-        skillKeywords = fetchedProfile?.skillKeywords?.split(',');
     }
 
     return (
         <>
-            {/* {loading?<Loading/>: */}
-            <div className="flex justify-center bg-white w-full">
-                <div
-                    className="flex text-[#73b6ff] text-[18px] mt-5 ml-5 font-semibold cursor-pointer"
-                    onClick={() => {
-                        navigate("/");
-                    }}
-                >
-                    <IoMdArrowBack className="mt-1"/>
-                    <p>Back</p>
-                </div>
-                <div className=" w-full flex flex-row justify-center">
-                    <FileUploadModal
-                        getImage={getImage}
-                        uploadImage={uploadImage}
-                        modalOpen={modalOpen}
-                        setModalOpen={setModalOpen}
-                        currentImage={currentImage}
-                        progress={progress}
-                    />
-                    <div className="ml-10">
+            {loading ? (
+                <SkeletonCard/>
+            ) : (
+                <div className="flex justify-center bg-white w-[1100px]">
+                    <div
+                        className="flex text-[#73b6ff] text-[18px] mt-5 ml-5 font-semibold cursor-pointer"
+                        onClick={() => {
+                            navigate("/");
+                        }}
+                    >
+                        <IoMdArrowBack className="mt-1"/>
+                        <p>Back</p>
+                    </div>
+                    <div className=" flex flex-col gap-[32px]">
+                        <FileUploadModal
+                            getImage={getImage}
+                            uploadImage={uploadImage}
+                            modalOpen={modalOpen}
+                            setModalOpen={setModalOpen}
+                            currentImage={currentImage}
+                            progress={progress}
+                        />
+                        {/* <div className=" ml-10"> */}
                         <div
-                            className="  text-gray-800 font-montserrat w-full h-fit justify-center mt-12  lg:p-10 p-6  card rounded-xl ">
-                            <div className="">
-                                <div>
-                                    <div className=" ">
-                                        <div className="w-full flex justify-center">
-                                            {indexedUser &&
-                                            indexedUser.find((item) => item.avatar !== null) ? (
-                                                <img
-                                                    className="w-44 h-32 rounded-lg "
-                                                    src={
-                                                        indexedUser.find(
-                                                            (item) => item.avatar !== undefined
-                                                        )!.avatar
-                                                    }
-                                                />
-                                            ) : (
-                                                <Avatar
-                                                    style={{width: "8rem", height: "8rem"}}
-                                                    className=""
-                                                    {...config}
-                                                />
-                                            )}
-                                        </div>
-                                        <h3 className=" text-[18px] font-sans font-bold text-gray-600 mt-4 text-center">
-                                            {fetchedProfile?.firstName} {fetchedProfile?.lastName}
-                                        </h3>
-                                        <p className=" text-[16px] mt-2 font-sans font-medium text-gray-500 text-center">
-                                            {fetchedProfile?.preferredTitle}
-                                        </p>
-                                        <p className=" text-[16px] font-sans mt-2  text-gray-500 text-center flex justify-center">
-                                            <MdOutlineLocationOn
-                                                className="h-6 w-6"/> {fetchedProfile?.preferredLocation}
-                                        </p>
-                                        {cid !== "self" && <div className="w-full flex justify-center mt-4">
-                                            <Link
-                                                to=""
-                                                state={{profileData: fetchedProfile}}
-                                            >
-                                                <button
-                                                    className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center "
-                                                    type="button"
+                            className=" flex items-center justify-center text-gray-800 font-montserrat h-fit  w-full lg:p-10 p-6  rounded-xl ">
+                            <Card
+                                className={`
+            overflow-hidden
+            ${"bg-white"}
+            rounded-lg
+            w-[70%] 
+            shadow-lg 
+            p-4  
+            transition-transform 
+            transform hover:scale-105`}
+                            >
+                                <div className="profile-info w-full  p-6 ">
+                                    <div className="flex flex-col items-center">
+                                        <div className=" flex flex-col items-center justify-between">
+                                            <div className="flex flex-col items-center justify-start pb-8">
+                                                <div>
+                                                    {indexedUser &&
+                                                    indexedUser.find((item) => item.avatar !== null) ? (
+                                                        <img
+                                                            className="w-32 h-32 rounded-full"
+                                                            src={
+                                                                indexedUser.find(
+                                                                    (item) => item.avatar !== undefined
+                                                                )!.avatar
+                                                            }
+                                                        />
+                                                    ) : (
+                                                        // <Avatar
+                                                        //   style={{ width: "8rem", height: "8rem" }}
+                                                        //   className="rounded-full"
+                                                        //   {...config}
+                                                        // />
+                                                        <img
+                                                            src={
+                                                                fetchedProfile?.profileImage &&
+                                                                fetchedProfile?.profileImage!
+                                                            }
+                                                            className="w-32 h-32 rounded-2xl"
+                                                        />
+                                                    )}
+                                                </div>
+                                                <div className="flex flex-col text-center gap-1">
+                                                    <h3 className=" text-[18px] font-sans font-bold tracking-tighter text-gray-600 mt-2">
+                                                        {fetchedProfile?.firstName}{" "}
+                                                        {fetchedProfile?.lastName}
+                                                    </h3>
+                                                    <h2 className="tracking-tighter">
+                                                        {fetchedProfile?.preferredTitle!}
+                                                    </h2>
+                                                    <div className="flex gap-1 items-center justify-center">
+                                                        <CiLocationOn size={16}/>
 
-                                                >
-                                                    Connect
-                                                </button>
-                                            </Link>
-                                        </div>}
-                                        {cid === "self" && <div className="w-full flex justify-center mt-4">
-                                            <Link
-                                                to="/profileEdit"
-                                                state={{profileData: fetchedProfile}}
-                                            >
-                                                <button
-                                                    className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center "
-                                                    type="button"
-                                                    onClick={() => {
-                                                        navigate("/profileEdit");
-                                                    }}
-                                                >
-                                                    Edit profile
-                                                </button>
-                                            </Link>
-                                        </div>}
-                                    </div>
-                                    <p className=" text-[16px] font-sans font-medium text-gray-500 text-center mt-2">
-                                        {fetchedProfile?.description}
-                                    </p>
-                                    <div className="w-full flex justify-center ">
-                                        {" "}
-
-
-                                        <div className="flex flex-wrap gap-2 ">
-                                            {skillKeywords &&
-                                                skillKeywords.map((skill: any, index: any) => (
-                                                    <div key={index}
-                                                         className="text-gray-800 border-4 border-blue-300 mt-6 hover:border-gradient-to-br focus:ring-4 focus:outline-none shadow-lg   font-medium rounded-2xl text-sm px-5 py-2.5 text-center mr-2 mb-2">
-                                                        {skill.trim()}
+                                                        <p className=" text-[16px] tracking-tighter font-sans  text-gray-500 ">
+                                                            {fetchedProfile?.preferredLocation}
+                                                        </p>
                                                     </div>
-                                                ))}
+                                                </div>
+                                            </div>
+                                            <div className="flex gap-10 -mt-3 mb-4 items-center justify-center">
+                                                <div className="flex h-fit gap-4  ">
+                                                    <TooltipProvider>
+                                                        <Tooltip delayDuration={10}>
+                                                            <TooltipTrigger asChild>
+                                                                <div
+                                                                    className="text-[16px] px-4 py-2 rounded-xl text-lg shadow-xl drop-shadow-md bg-white  font-sans font-medium text-gray-500 tracking-tighter ">
+                                                                    {" "}
+                                                                    {scores?.trust_score}
+                                                                </div>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                <p>Trust Score</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                    <TooltipProvider>
+                                                        <Tooltip delayDuration={10}>
+                                                            <TooltipTrigger asChild>
+                                                                <div
+                                                                    className="text-[16px] px-4 py-2 rounded-xl text-lg shadow-xl drop-shadow-md bg-white  font-sans font-medium text-gray-500 tracking-tighter ">
+                                                                    {" "}
+                                                                    {scores?.gitcoin_score}
+                                                                </div>
+                                                            </TooltipTrigger>
+                                                            <TooltipContent>
+                                                                <p>Gitcoin Score</p>
+                                                            </TooltipContent>
+                                                        </Tooltip>
+                                                    </TooltipProvider>
+                                                </div>
+                                                {address.toLowerCase() === cid?.toLowerCase() ? (
+                                                    <div className="w-full flex justify-end mt-6 py-6">
+                                                        <Link
+                                                            to="/profileEdit"
+                                                            state={{profileData: fetchedProfile}}
+                                                        >
+                                                            <button
+                                                                className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
+                                                                type="button"
+                                                                onClick={() => {
+                                                                    navigate("/profileEdit");
+                                                                }}
+                                                            >
+                                                                Edit profile
+                                                            </button>
+                                                        </Link>
+                                                    </div>
+                                                ) : (
+                                                    <button
+                                                        onClick={clickHandler(
+                                                            address,
+                                                            walletClient,
+                                                            client
+                                                        )}
+                                                        className="px-4  mt-1 h-fit hover:scale-105 transition duration-200 text-lg rounded-xl font-semibold tracking-tighter bg-[#0e76fd] text-white py-1.5"
+                                                    >
+                                                        Connect
+                                                    </button>
+                                                )}
+                                            </div>
                                         </div>
-
+                                        <div className="w-full flex justify-between ">
+                                            {" "}
+                                            <div className="">
+                                                {" "}
+                                                <p className=" text-[16px] leading-normal font-sans font-medium text-gray-500">
+                                                    {fetchedProfile?.description}
+                                                </p>
+                                                <div
+                                                    className=" flex flex-wrap items-center justify-center tracking-tight mt-2 gap-1.5 text-[16px] font-sans  text-gray-500 ">
+                                                    {/* <span className="font-bold">Skills</span>:&nbsp; */}
+                                                    {fetchedProfile?.skillKeywords
+                                                        .split(",")
+                                                        .map((keyword, index) => (
+                                                            <span
+                                                                key={index}
+                                                                className="bg-blue-100  text-xs  font-medium mr-2 px-2.5 py-0.5 rounded  text-slate-400"
+                                                            >
+                                {keyword}
+                              </span>
+                                                        ))}
+                                                </div>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
-                            </div>
+                            </Card>
                         </div>
 
-                        <div
-                            className="text-gray-800 font-montserrat h-fit mt-12 w-[700px] lg:p-10 p-6  card rounded-xl">
-                            {fetchedProfile?.organization &&
-                                fetchedProfile?.organization?.length > 0 && (
-                                    <div>
-                                        <h1 className="heading-2">Organizations</h1>
-                                        <ul>
-                                            {fetchedProfile?.organization?.map(
-                                                (item: any, index: any) => (
-                                                    <li key={index} className="experience-card">
-                                                        <div>
-                                                            <br/>
-                                                            <img
-                                                                className="experience-image"
-                                                                src="https://imgs.search.brave.com/m76M_P2x6d-LP9crPYcv9_x3EgIiE7fHS3LjbpOGEl8/rs:fit:860:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzAyLzAwLzk5Lzk5/LzM2MF9GXzIwMDk5/OTk3OF9pWVJISUVr/VWczWHJMY01RVFp6/R20wYTg4bWYzelQy/WS5qcGc"
-                                                                alt="company-logo"
-                                                            />
-                                                        </div>
-                                                        <div>
-                                                            <br/>
-                                                            <strong>{item.organizationName}</strong>
-                                                            <br/>
-                                                            <h3>{item.titleAtWork}</h3>
-                                                            <p>
-                                                                {new Intl.DateTimeFormat("en-US", {
-                                                                    year: "numeric",
-                                                                    month: "short",
-                                                                }).format(
-                                                                    new Date(item.relationshipTimestamp.startDate)
-                                                                )}
-                                                                -
-                                                                {new Intl.DateTimeFormat("en-US", {
-                                                                    year: "numeric",
-                                                                    month: "short",
-                                                                }).format(
-                                                                    new Date(item.relationshipTimestamp.endDate)
-                                                                )}
-                                                            </p>
-                                                            <br/>
-                                                        </div>
-                                                    </li>
-                                                )
-                                            )}
-                                        </ul>
-                                    </div>
+                        {/* <div className="text-gray-800 font-montserrat h-fit mt-12 w-[700px] lg:p-10 p-6  card rounded-xl">
+              {fetchedProfile?.organization &&
+                fetchedProfile?.organization?.length > 0 && (
+                  <div>
+                    <h1 className="heading-2">Organizations</h1>
+                    <ul>
+                      {fetchedProfile?.organization?.map(
+                        (item: any, index: any) => (
+                          <li key={index} className="experience-card">
+                            <div>
+                              <br />
+                              <img
+                                className="experience-image"
+                                src="https://imgs.search.brave.com/m76M_P2x6d-LP9crPYcv9_x3EgIiE7fHS3LjbpOGEl8/rs:fit:860:0:0/g:ce/aHR0cHM6Ly90NC5m/dGNkbi5uZXQvanBn/LzAyLzAwLzk5Lzk5/LzM2MF9GXzIwMDk5/OTk3OF9pWVJISUVr/VWczWHJMY01RVFp6/R20wYTg4bWYzelQy/WS5qcGc"
+                                alt="company-logo"
+                              />
+                            </div>
+                            <div>
+                              <br />
+                              <strong>{item.organizationName}</strong>
+                              <br />
+                              <h3>{item.titleAtWork}</h3>
+                              <p>
+                                {new Intl.DateTimeFormat("en-US", {
+                                  year: "numeric",
+                                  month: "short",
+                                }).format(
+                                  new Date(item.relationshipTimestamp.startDate)
                                 )}
-                        </div>
-                        {fetchedProfile?.attestationData &&
-                            fetchedProfile?.attestationData?.map(
-                                (attestation: any, key: any) => {
-                                    const message = JSON.parse(attestation?.decodedDataJson);
-                                    console.log("Attestaion Message:", message[0]?.value.value);
-                                    const unixTimestamp = attestation?.timeCreated;
-                                    const formattedDate = formatUnixTimestamp(unixTimestamp);
-                                    console.log(formattedDate);
-                                    if (typeof message !== "string")
-                                        return (
-                                            <div
-                                                className="text-gray-800 font-montserrat h-fit mt-12 w-[700px]   card rounded-xl "
-                                                key={key}
-                                            >
-                                                <div className=" p-4 border-2 rounded-lg border-blue-300">
-                                                    <a href="#" className="w-full text-center">
-                                                        <h5 className="mb-2 text-2xl font-semibold tracking-tight text-gray-900 ">
-                                                            Attestation {key + 1}
-                                                        </h5>
-                                                        <p className=" text-[16px] font-sans  text-gray-600 ">
-                                                            Chain ID: {attestation?.chainID == 10
-                                                            ? "Optimism"
-                                                            : "Mainnet"}
-                                                        </p>
-                                                    </a>
-                                                    <div className="  gap-2 mb-[4px] flex justify-center">
-                                                        <p className="text-[16px] font-sans font-bold text-gray-700 ">
-                                                            Data:{" "}
-                                                        </p>
-                                                        <div>
-                                                            <p className=" text-[16px] font-sans   text-gray-600 ">
-                                                                Message: {message[0]?.value?.value?.hex &&
-                                                                BigInt(
-                                                                    message[0]?.value?.value?.hex!
-                                                                ).toString()}
-                                                            </p>
+                                -
+                                {new Intl.DateTimeFormat("en-US", {
+                                  year: "numeric",
+                                  month: "short",
+                                }).format(
+                                  new Date(item.relationshipTimestamp.endDate)
+                                )}
+                              </p>
+                              <br />
+                            </div>
+                          </li>
+                        )
+                      )}
+                    </ul>
+                  </div>
+                )}
+            </div> */}
+                        {/* </div> */}
+                        <div className=" pb-8 grid items-center  mx-auto gap-8 grid-cols-2">
+                            {fetchedProfile?.attestationData &&
+                                fetchedProfile?.attestationData?.map(
+                                    (attestation: any, key: any) => {
+                                        console.log("307 attestation, key", key);
+
+                                        const message = JSON.parse(attestation?.decodedDataJson);
+                                        // console.log(
+                                        //   "🚀 ~ file: ProfileCard.tsx:310 ~ ProfileCard ~ message:",
+                                        //   message
+                                        // );
+                                        // console.log("Attestaion Message:", message[0]?.value.value);
+                                        const unixTimestamp = attestation?.timeCreated;
+                                        const formattedDate = formatUnixTimestamp(unixTimestamp);
+                                        // console.log(
+                                        //   "date 313",
+                                        //   message[0]?.value?.value? && BigInt(message[0]?.value?.value?.hex!).toString()
+                                        // );
+                                        if (typeof message !== "string")
+                                            return (
+                                                <div
+                                                    className="text-gray-800 font-montserrat h-fit mt-12  card  w-96 rounded-[--card-radius] bg-white shadow ring-1 ring-black/10 [--card-padding:theme(spacing.1)] [--card-radius:theme(borderRadius.2xl)] "
+                                                    key={key}
+                                                >
+                                                    <div
+                                                        className=" p-4 border-2 rounded-[calc(var(--card-radius)-var(--card-padding))] border-blue-300">
+                                                        <div className="w-full text-center">
+                                                            <h5 className="mb-2 text-2xl font-semibold tracking-tight text-gray-900 ">
+                                                                Attestation {key + 1}
+                                                            </h5>
                                                             <p className=" text-[16px] font-sans  text-gray-600 ">
-                                                                Recipient:{" "}
-                                                                {attestation?.recipient.slice(0, 4) +
-                                                                    "...." +
-                                                                    attestation?.recipient.slice(-4)}
+                                                                Chain:{" "}
+                                                                {attestation?.chainID == 10
+                                                                    ? "Optimism"
+                                                                    : "Mainnet"}
                                                             </p>
                                                         </div>
-                                                    </div>
-                                                    <div className=" flex gap-2 mb-[4px] justify-center">
-                                                        <p className=" text-[16px] font-sans font-bold text-gray-600 ">
-                                                            Attester:{" "}
-                                                        </p>
-                                                        <div>
-                                                            <p className=" text-[16px] font-sans  text-gray-600 ">
-                                                                {attestation?.attester.slice(0, 4) +
-                                                                    "...." +
-                                                                    attestation?.attester.slice(-4)}
+                                                        <div className=" flex gap-2 mb-[4px]">
+                                                            <p className="text-[16px] font-sans font-bold text-gray-700 ">
+                                                                Data:{" "}
                                                             </p>
+                                                            <div>
+                                                                <p className=" text-[16px] font-sans  text-gray-600 ">
+                                                                    Message:{" "}
+                                                                    {message[0]?.value?.value?.hex &&
+                                                                        BigInt(
+                                                                            message[0]?.value?.value?.hex!
+                                                                        ).toString()}
+                                                                </p>
+                                                                <p className=" text-[16px] font-sans  text-gray-600 ">
+                                                                    Recipient:{" "}
+                                                                    {attestation?.recipient.slice(0, 4) +
+                                                                        "...." +
+                                                                        attestation?.recipient.slice(-4)}
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <div className=" flex gap-2 mb-[4px] justify-center">
-                                                        <p className="text-[16px] font-sans font-bold text-gray-700 ">
-                                                            Issued:{" "}
-                                                        </p>
-                                                        <div>
-                                                            <p className=" text-[16px] font-sans  text-gray-600 ">
-                                                                {formattedDate}
+                                                        <div className=" flex gap-2 mb-[4px]">
+                                                            <p className=" text-[16px] font-sans font-bold text-gray-600 ">
+                                                                Attester:{" "}
                                                             </p>
+                                                            <div>
+                                                                <p className=" text-[16px] font-sans  text-gray-600 ">
+                                                                    {attestation?.attester.slice(0, 4) +
+                                                                        "...." +
+                                                                        attestation?.attester.slice(-4)}
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    <div className=" flex gap-2 mb-[4px] justify-center">
-                                                        <p className="text-[16px] font-sans font-bold text-gray-700 ">
-                                                            Expires:{" "}
-                                                        </p>
-                                                        <div>
-                                                            <p className=" text-[16px] font-sans  text-gray-600 ">
-                                                                {" "}
-                                                                {attestation?.expirationTime}
+                                                        <div className=" flex gap-2 mb-[4px]">
+                                                            <p className="text-[16px] font-sans font-bold text-gray-700 ">
+                                                                Issued:{" "}
                                                             </p>
+                                                            <div>
+                                                                <p className=" text-[16px] font-sans  text-gray-600 ">
+                                                                    {formattedDate}
+                                                                </p>
+                                                            </div>
                                                         </div>
-                                                    </div>
-                                                    {/* <div className="w-full flex justify-center">
+                                                        <div className=" flex gap-2 mb-[4px]">
+                                                            <p className="text-[16px] font-sans font-bold text-gray-700 ">
+                                                                Expires:{" "}
+                                                            </p>
+                                                            <div>
+                                                                <p className=" text-[16px] font-sans  text-gray-600 ">
+                                                                    {" "}
+                                                                    {attestation?.expirationTime}
+                                                                </p>
+                                                            </div>
+                                                        </div>
+                                                        {/* <div className="w-full flex justify-center">
                         <button
                           className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 "
                           type="submit"
@@ -433,15 +519,15 @@ export default function ProfileCard() {
                           Verify
                         </button>
                       </div> */}
+                                                    </div>
                                                 </div>
-                                            </div>
-                                        );
-                                }
-                            )}
+                                            );
+                                    }
+                                )}
+                        </div>
                     </div>
-
                 </div>
-            </div>
+            )}
         </>
     );
 }
