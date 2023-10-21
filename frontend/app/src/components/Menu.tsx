@@ -1,5 +1,5 @@
 import "./Menu.css";
-import React, { FC, PropsWithChildren, useState, useEffect } from "react";
+import React, { FC, PropsWithChildren, useState, useEffect, useContext } from "react";
 import { IconButton } from "@radix-ui/themes";
 import {
   Tooltip,
@@ -18,7 +18,21 @@ import {
 import { FiSettings } from "react-icons/fi";
 import { RiAdminLine, RiMessage2Line } from "react-icons/ri";
 import { IoIosNotificationsOutline } from "react-icons/io";
-import { getConReqListForUserApproval } from "./Connections";
+import { getConReqListForUserApproval, syncConversation } from "./Connections";
+import { useNavigate } from "react-router-dom";
+import { IoMdArrowBack } from "react-icons/io";
+import "./App.css";
+import { useAccount, useWalletClient } from "wagmi";
+import { Client, useClient } from "@xmtp/react-sdk";
+import Dexie from 'dexie';
+import { SupabaseContext } from "../contexts/SupabaseContext";
+import { ethers } from "ethers";
+import axios from 'axios';
+
+
+
+
+
 
 const MenuIcon: FC<
   PropsWithChildren<{ tooltip: string; link: string; additionalClass?: string }>
@@ -38,14 +52,64 @@ const MenuIcon: FC<
     </TooltipProvider>
   );
 };
+
+
+
+
+
+
 export const Menu = () => {
   const [approveListCnt, setApproveListCnt] = useState(0);
+
+
+
+
+  const { data: walletClient } = useWalletClient();
+  const { client } = useClient();
+
+  const supabase = useContext(SupabaseContext);
+
+ 
+
 
   useEffect(() => {
     const requests = getConReqListForUserApproval();
     console.log("🚀 ~ file: Menu.tsx:37 ~ useEffect ~ requests:", requests);
     setApproveListCnt(requests.length);
-  }, []);
+
+    const clientAddress =  walletClient?.account?.address
+
+    if(client){
+
+
+      const xmtpLoop = async () => {
+        try {
+          const stream = await client.conversations.stream();
+          for await (const conversation of stream) {
+            console.log(`New conversation started with ${conversation.peerAddress}`);
+            // Say hello to your new friend
+
+            let lol = await  syncConversation(conversation,supabase,true)
+            console.log(`syncConversation() returned `,lol);
+            // Break from the loop to stop listening
+            //This stream will continue infinitely. To end the stream,
+            //You can either break from the loop, or call `await stream.return()`.
+            break;
+          }
+        } catch (error) {
+          console.error("Error fetching user data:", error);
+        }
+      };
+      
+      xmtpLoop();
+
+      
+
+      
+  }
+  
+
+  }, [client]);
 
   return (
     <>

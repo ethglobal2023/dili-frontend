@@ -11,9 +11,6 @@ import axios from 'axios';
 
 
 
-
-
-
 let clientPreferedEngine="159.203.132.121:3005/api/" //TODO change this to using standard settings 
 
 function getLocalConversationState(){
@@ -197,7 +194,7 @@ function getLocalConvoSync(peerAddress:string,clientAddress:string){
 
 //todo create an index of conversations that need to be approved 
 
-
+ 
 function setLocalConvoSync(peerAddress:string,clientAddress:string,data:object){
   return ( localStorage.setItem(("cr_"+peerAddress+"_clientAddress_"+clientAddress).toLocaleUpperCase(),JSON.stringify(data)) )
 }
@@ -220,7 +217,7 @@ function xmsgcontent(xmessage:any){
       return xmessage.content.content;
 }
 
-async function syncConversation(convo:any,supabase:any){
+export async function syncConversation(convo:any,supabase:any, ignoreLocal=false){
   //console.log("🚀 ~ file: App.tsx:53 ~ syncConversation ~ convo:", convo)
   
 
@@ -236,12 +233,17 @@ async function syncConversation(convo:any,supabase:any){
     let localc = getLocalConvoSync(peerAddress,clientAddress)
     let newc={}
     let clientReplied=false;
-    if(true || !localc){ //TODO remove true 
+    let anyClientRepliedEvenAuto=false;
+    if(ignoreLocal || !localc){ //TODO remove true 
 
       let m5res = await convo.messages({limit:5,direction:2});
       console.log("m5res=",m5res)
       //@ts-ignore
-      clientReplied = m5res?.filter((a)=> a.senderAddress.toLocaleUpperCase()===clientAddress)?.length>0 ? true : false;
+      clientReplied = m5res?.filter((a)=> (a.senderAddress.toLocaleUpperCase()===clientAddress) && !xmsgcontent(a).includes("auto reply"))?.length>0 ? true : false;
+
+      //@ts-ignore
+      anyClientRepliedEvenAuto = m5res?.filter((a)=> (a.senderAddress.toLocaleUpperCase()===clientAddress))?.length>0 ? true : false;
+
       console.log("🚀 ~ file: Connections.tsx:245 ~ syncConversation ~ clientReplied:", clientReplied)
 
       let mres = await convo.messages({limit:1,direction:1}); //getting first message
@@ -362,7 +364,7 @@ async function syncConversation(convo:any,supabase:any){
 
         }
 
-      newc={peerAddress:peerAddress,clientAddress:clientAddress,autoFilterState:"unknown",userResponse:"unkown",peerTrustScore:peerTrustScore,gitcoinScore:-1,createdAt:convo.createdAt ,firstmsg:firstmsg, lastmsg:lastMessage,relevantword:relevantword, firstword:firstword,secondword:secondword  , lastMessageFirstWord:lastMessageFirstWord, connectionRequests30days:connectionRequests30days  , requestAccouncedPublically:requestAccouncedPublically, syncedAt:(new Date).toISOString()};
+      newc={peerAddress:peerAddress,clientAddress:clientAddress,autoFilterState:"unknown",userResponse:"unkown",peerTrustScore:peerTrustScore,gitcoinScore:-1,createdAt:convo.createdAt ,firstmsg:firstmsg, lastmsg:lastMessage,relevantword:relevantword, firstword:firstword,secondword:secondword  , lastMessageFirstWord:lastMessageFirstWord, connectionRequests30days:connectionRequests30days  , requestAccouncedPublically:requestAccouncedPublically, syncedAt:(new Date).toISOString() , autoReply:"" };
       console.log("🚀 ~ file: App.tsx:68 ~ syncConversation ~ newc:", newc)
 
       //TODO change the below based on user settings 
@@ -373,11 +375,40 @@ async function syncConversation(convo:any,supabase:any){
           newc.userResponse=userResponse;
            //@ts-ignore
           newc.autoFilterState="ok-user-replied"
+      }      
+      else if( !requestAccouncedPublically ){
+
+        //@ts-ignore 
+        newc.autoFilterState="spam"
+        addConReqToSpamList(peerAddress);
+        if(!anyClientRepliedEvenAuto)
+          await convo.send("I likley won't see this message because there was no public annonymized announcement of this connection request found. Most likely your using an XMTP client which has not implemented the DiLi decentralized spam protection standard. You could install DiLi or try to get incontact with me on another channel mentioning your xmtp address so I can whitelist you. rubenwolff.com/ https://www.linkedin.com/in/ruben-wolff/   ( auto reply ).") 
       }
-      else if( ( (peerTrustScore>1||gitcoinScore>3) && requestAccouncedPublically && connectionRequests30days<400 )  || (peerTrustScore>24&&gitcoinScore>20) ){
+      else if(   connectionRequests30days>5 )   {
+      //@ts-ignore 
+        newc.autoFilterState="spam"
+        addConReqToSpamList(peerAddress);
+        if(!anyClientRepliedEvenAuto)
+          await convo.send("This chat request has suprassed my confiugred max connection requests per month and will not show up on my device. Please try me again next month when your messaging volume is lower. ( auto reply ).")
+        
+      }
+      else if( ( peerTrustScore<5 && requestAccouncedPublically && connectionRequests30days<100 )   ){
         addConReqListForUserApproval(peerAddress);
+          //@ts-ignore 
+        newc.autoFilterState="ok";
+        if(!anyClientRepliedEvenAuto)
+          await convo.send(`Thanks for your connection request. Due to my current high workload it may take some time for me to get back to you. If you could first have a call with my account manager they could find a spot in my calendar and make sure I am the right fit for your project. Please get in contact here: https://calendly.com/copro-onboarding. Note: this was an auto reply.`)
+        
+      }
+      else if(  peerTrustScore>25 && requestAccouncedPublically && connectionRequests30days<100 ){
+
+        addConToApprovedList(peerAddress);
+
         //@ts-ignore
         newc.autoFilterState="ok"
+
+        if(!anyClientRepliedEvenAuto)
+          await convo.send(`Thanks for your connection request. In case you would like to talk about a new consulting project feel free to directly book into my calender   https://calendly.com/wolffr . Note: this was an auto reply.`)
 
         console.log(" EVAL EVAL EVAL "+peerAddress+" IS OK         .     data="+JSON.stringify(newc));
       }
@@ -391,6 +422,7 @@ async function syncConversation(convo:any,supabase:any){
       }
 
       setLocalConvoSync(peerAddress,clientAddress,newc);
+      return newc;
 
     }
   }
@@ -548,7 +580,7 @@ const Connections = () => {
     }, [walletClient]);
     
   return (
-    <div className="w-[100%]">
+    <div className="w-[1100px]">
       {" "}
       <div>
         <div
