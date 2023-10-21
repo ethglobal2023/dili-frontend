@@ -223,7 +223,11 @@ let lastAutoReplyDest="";
 export async function syncConversation(convo:any,supabase:any, ignoreLocal=false){
   //console.log("🚀 ~ file: App.tsx:53 ~ syncConversation ~ convo:", convo)
   
-
+  let tmp= localStorage.getItem("lastAutoReplyDest");
+  if(!tmp)
+    lastAutoReplyDest="";
+  else 
+  lastAutoReplyDest=tmp;
 
 
 
@@ -433,6 +437,7 @@ export async function syncConversation(convo:any,supabase:any, ignoreLocal=false
       }
 
       lastAutoReplyDest=peerAddress;
+      localStorage.setItem("lastAutoReplyDest",lastAutoReplyDest)
       setLocalConvoSync(peerAddress,clientAddress,newc);
       return newc;
 
@@ -608,7 +613,7 @@ const Connections = () => {
           <h2 className="text-center font-sans text-[24px] font-bold mb-4">Your Invitations</h2>
 
           <ul className="flex flex-row flex-wrap ">
-            {connectionForUserToApproveList.map((item,index) => {
+            {connectionForUserToApproveList.filter(i=>i.length>1).map((item,index) => {
               //const itemstatus=getConStatus(item);
               return (
                 <li key={item} className="">
@@ -660,7 +665,7 @@ const Connections = () => {
           <h2 className="text-center font-sans text-[12px] font-bold mb-2">Spam Folder</h2>
 
           <ul className="flex flex-row flex-wrap ">
-            {connectionSpamList.map((item,index) => {
+            {connectionSpamList.filter(i=>i.length>1).map((item,index) => {
               //const itemstatus=getConStatus(item);
               return (
                 <li key={item} className="">
@@ -704,7 +709,7 @@ const Connections = () => {
           <h2 className="text-center font-sans text-[12px] font-bold mb-2">Accepted Connections</h2>
 
           <ul className="flex flex-row flex-wrap ">
-            {connectionApprovedList.map((item,index) => {
+            {connectionApprovedList.filter(i=>i.length>1).map((item,index) => {
               //const itemstatus=getConStatus(item);
               return (
                 <li key={item} className="">

@@ -1,9 +1,13 @@
 import { useConversations, useStreamConversations } from "@xmtp/react-sdk";
-import type { CachedConversation } from "@xmtp/react-sdk";
+import type { CachedConversation  } from "@xmtp/react-sdk";
+import { Client, useClient } from "@xmtp/react-sdk";
+import React, { useEffect, useState, useContext } from "react";
 import { ChatBubbleLeftIcon } from "@heroicons/react/24/outline";
 import { ConversationList } from "@xmtp/react-components";
 import { Notification } from "./Notification";
 import { ConversationCard } from "./ConversationCard";
+import { syncConversationlist } from "./Connections";
+import { SupabaseContext } from "../contexts/SupabaseContext";
  
 type ConversationsProps = {
   selectedConversation?: CachedConversation;
@@ -34,6 +38,29 @@ export const Conversations: React.FC<ConversationsProps> = ({
   useStreamConversations();
   console.log("getApprovedConList():",getApprovedConList())
   console.log("conversationsconversations: ",conversations)
+
+
+  const supabase = useContext(SupabaseContext);
+  const { client } = useClient();
+  console.log("useClient() xmptpppp: client?.address "+ client?.address)
+  console.log("useClient() xmptpppp: client "+ client)
+
+  const getMessages = async () => {
+
+    const allconvo = await client!.conversations.list();
+    if(allconvo && allconvo.length>0)
+      await syncConversationlist(allconvo,supabase);
+ 
+   
+  };
+
+
+
+  useEffect(() => {
+    getMessages()
+      }, [])
+
+
   const conversations_f=conversations.filter((x)=>getApprovedConList().includes(x.peerAddress.toUpperCase()))
 
   console.log("conversations_f:",conversations_f)

@@ -90,8 +90,10 @@ export const Menu = () => {
             console.log(`New conversation started with ${conversation.peerAddress}`);
             // Say hello to your new friend
 
+            /*
             if(conversation.peerAddress===last_reacted_convo)
               break;
+            */
             
             last_reacted_convo=conversation.peerAddress;
             //@ts-ignore
