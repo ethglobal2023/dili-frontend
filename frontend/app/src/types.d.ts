@@ -26,11 +26,18 @@ export type IndexedUser = {
     };
   };
 };
+
+export type Scores = {
+  gitcoin_score: number;
+  trust_score: number;
+};
+
 export type Resume = {
   dids: string[];
   pubKey: string;
   lastName: string;
   firstName: string;
+  profileImage?: string;
   languages: {
     name: string;
     level: string;
@@ -89,7 +96,7 @@ export type Resume = {
   }[];
   preferredName: string;
   preferredTitle: string;
-  skillKeywords: string[];
+  skillKeywords: string;
   eoaAttestations: any[];
   attestationData: any[];
   preferredLocation: string;
