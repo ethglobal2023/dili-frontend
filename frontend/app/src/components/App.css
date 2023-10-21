@@ -1,6 +1,3 @@
-
-
-
 .InboxHeader__xmtp {
   flex: 0 0 var(--sidebar-width);
   display: flex;
@@ -30,7 +27,7 @@
   height: inherit;
   min-height: 100vh;
   background-color: white !important;
-  min-width: 400px;
+  width: 400px;
 }
 
 .InboxConversations__messages {
@@ -111,7 +108,12 @@ nav li a:hover .inner {
   max-width: 800px !important;
   position: relative;
   padding: 25px;
-  box-shadow: 0px 15px 20px rgba(0, 0, 0, 0.01), 0px 37px 22px rgba(0, 0, 0, 0.05), 0px 29px 29px rgba(0, 0, 0, 0.09), 0px 10px 21px rgba(0, 0, 0, 0.1), 0px 0px 0px rgba(0, 0, 0, 0.1);
+  box-shadow:
+    0px 15px 20px rgba(0, 0, 0, 0.01),
+    0px 37px 22px rgba(0, 0, 0, 0.05),
+    0px 29px 29px rgba(0, 0, 0, 0.09),
+    0px 10px 21px rgba(0, 0, 0, 0.1),
+    0px 0px 0px rgba(0, 0, 0, 0.1);
   border-radius: 23px;
   transition: all 0.8s cubic-bezier(0.15, 0.83, 0.66, 1);
   margin-bottom: 45px;

@@ -49,7 +49,7 @@ export const Menu = () => {
 
   return (
     <>
-      <div className="font-bold text-center text-xl p-4">
+      <div className="font-bold w-[400px] text-center text-xl p-4">
         <Routes>
           <Route path="/search" element={<div>Search</div>} />
           <Route path="/" element={<div>Messages</div>} />
@@ -60,7 +60,7 @@ export const Menu = () => {
           <Route path="/settings" element={<div>Settings</div>} />
         </Routes>
       </div>
-      <div className="mt-auto flex justify-between pb-6 border-b-[3px] max-w-[400px] px-4">
+      <div className="mt-auto flex justify-between pb-6 border-b-[3px] w-[400px] px-4">
         <MenuIcon tooltip={"Search"} link={"/search"}>
           <AiOutlineSearch className={"menu-icon"} />
         </MenuIcon>
