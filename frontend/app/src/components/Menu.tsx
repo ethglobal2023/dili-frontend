@@ -85,15 +85,27 @@ export const Menu = () => {
       const xmtpLoop = async () => {
         try {
           const stream = await client.conversations.stream();
+          let last_reacted_convo="";
           for await (const conversation of stream) {
             console.log(`New conversation started with ${conversation.peerAddress}`);
             // Say hello to your new friend
 
+            if(conversation.peerAddress===last_reacted_convo)
+              break;
+            
+            last_reacted_convo=conversation.peerAddress;
+            //@ts-ignore
+            function sleep(ms) {
+              return new Promise(resolve => setTimeout(resolve, ms));
+            }
+
+            await sleep(20);
             let lol = await  syncConversation(conversation,supabase,true)
             console.log(`syncConversation() returned `,lol);
             // Break from the loop to stop listening
             //This stream will continue infinitely. To end the stream,
             //You can either break from the loop, or call `await stream.return()`.
+            
             break;
           }
         } catch (error) {

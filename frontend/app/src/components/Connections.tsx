@@ -217,6 +217,7 @@ function xmsgcontent(xmessage:any){
       return xmessage.content.content;
 }
 
+let lastAutoReplyDest="";
 export async function syncConversation(convo:any,supabase:any, ignoreLocal=false){
   //console.log("🚀 ~ file: App.tsx:53 ~ syncConversation ~ convo:", convo)
   
@@ -381,23 +382,29 @@ export async function syncConversation(convo:any,supabase:any, ignoreLocal=false
         //@ts-ignore 
         newc.autoFilterState="spam"
         addConReqToSpamList(peerAddress);
-        if(!anyClientRepliedEvenAuto)
-          await convo.send("I likley won't see this message because there was no public annonymized announcement of this connection request found. Most likely your using an XMTP client which has not implemented the DiLi decentralized spam protection standard. You could install DiLi or try to get incontact with me on another channel mentioning your xmtp address so I can whitelist you. rubenwolff.com/ https://www.linkedin.com/in/ruben-wolff/   ( auto reply ).") 
+        if(!anyClientRepliedEvenAuto&& lastAutoReplyDest.toLocaleUpperCase()!==peerAddress.toLocaleUpperCase()){
+          lastAutoReplyDest=peerAddress;
+          await convo.send("I likley won't see this message because there was no public annonymized announcement of this connection request found. Most likely your using an XMTP client which has not implemented the DiLi decentralized spam protection standard. You could install DiLi or try to get incontact with me on another channel mentioning your xmtp address so I can whitelist you. ( auto reply ).") 
+        }
       }
       else if(   connectionRequests30days>5 )   {
       //@ts-ignore 
         newc.autoFilterState="spam"
         addConReqToSpamList(peerAddress);
-        if(!anyClientRepliedEvenAuto)
+        if(!anyClientRepliedEvenAuto&& lastAutoReplyDest.toLocaleUpperCase()!==peerAddress.toLocaleUpperCase()){
+          lastAutoReplyDest=peerAddress;
           await convo.send("This chat request has suprassed my confiugred max connection requests per month and will not show up on my device. Please try me again next month when your messaging volume is lower. ( auto reply ).")
+        }
         
       }
       else if( ( peerTrustScore<5 && requestAccouncedPublically && connectionRequests30days<100 )   ){
         addConReqListForUserApproval(peerAddress);
           //@ts-ignore 
         newc.autoFilterState="ok";
-        if(!anyClientRepliedEvenAuto)
+        if(!anyClientRepliedEvenAuto&& lastAutoReplyDest.toLocaleUpperCase()!==peerAddress.toLocaleUpperCase()){
+          lastAutoReplyDest=peerAddress;
           await convo.send(`Thanks for your connection request. Due to my current high workload it may take some time for me to get back to you. If you could first have a call with my account manager they could find a spot in my calendar and make sure I am the right fit for your project. Please get in contact here: https://calendly.com/copro-onboarding. Note: this was an auto reply.`)
+        }
         
       }
       else if(  peerTrustScore>25 && requestAccouncedPublically && connectionRequests30days<100 ){
@@ -407,8 +414,10 @@ export async function syncConversation(convo:any,supabase:any, ignoreLocal=false
         //@ts-ignore
         newc.autoFilterState="ok"
 
-        if(!anyClientRepliedEvenAuto)
+        if(!anyClientRepliedEvenAuto && lastAutoReplyDest.toLocaleUpperCase()!==peerAddress.toLocaleUpperCase()){
+          lastAutoReplyDest=peerAddress;
           await convo.send(`Thanks for your connection request. In case you would like to talk about a new consulting project feel free to directly book into my calender   https://calendly.com/wolffr . Note: this was an auto reply.`)
+        }
 
         console.log(" EVAL EVAL EVAL "+peerAddress+" IS OK         .     data="+JSON.stringify(newc));
       }
@@ -421,6 +430,7 @@ export async function syncConversation(convo:any,supabase:any, ignoreLocal=false
           //@ts-ignore
       }
 
+      lastAutoReplyDest=peerAddress;
       setLocalConvoSync(peerAddress,clientAddress,newc);
       return newc;
 
