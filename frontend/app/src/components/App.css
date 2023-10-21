@@ -30,7 +30,7 @@
   height: inherit;
   min-height: 100vh;
   background-color: white !important;
-  min-width: 400px;
+  width: 400px;
 }
 
 .InboxConversations__messages {
