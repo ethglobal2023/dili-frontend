@@ -84,7 +84,7 @@ export const App: React.FC = () => {
       <div className="InboxConversations ">
         <BrowserRouter>
           {/*<SideBar />*/}
-          <div className=" h-[100vh] overflow-x-hidden bg-white w-[400px] overflow-y-hidden  border-r-[3px]">
+          <div className=" h-[100vh] overflow-x-hidden bg-white w-[400px]   border-r-[3px]">
             <Menu />
             <Routes>
               {["/", "/messages"].map((path, index) => {
@@ -93,7 +93,7 @@ export const App: React.FC = () => {
                     path={path}
                     element={
                       <>
-                        <div className="InboxHeader__actions">
+                        <div className="flex w-full items-center justify-center mt-2">
                           <button
                             className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg flex dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2 "
                             type="button"

@@ -2,6 +2,8 @@ import React, { useContext, useEffect, useState } from "react";
 import FileUploadModal from "./FileUpload";
 import { IconButton } from "@radix-ui/themes";
 import { Card } from "../../@/components/ui/card";
+//@ts-ignore
+import Identicon from "react-identicons";
 import {
   Dialog,
   DialogContent,
@@ -61,6 +63,8 @@ export default function ProfileCard() {
   const { data: walletClient } = useEthersWalletClient();
   const [loading, setLoading] = useState(false);
   const [address, setAddress] = useState("");
+  const [open, setOpen] = useState(false);
+
   const [scores, setScores] = useState<Scores>();
   const supabase = useContext(SupabaseContext);
   const { client } = useClient();
@@ -113,33 +117,36 @@ export default function ProfileCard() {
           setLoading(false);
           return;
         }
-        if (stageCid === "self") {
-          console.log(
-            "No cid provided, but self, searching supabase for wallet address",
-            walletAddress?.toLowerCase()
-          );
-          if (!walletAddress) {
-            console.log("No wallet, nor cid provided to profile card");
-            setLoading(false);
-            return;
-          }
-          const { data } = await supabase
-            .from("resumes")
-            .select("cid")
-            .eq("address", walletAddress.toLowerCase())
-            .single();
-          console.log(
-            "🚀 ~ file: ProfileCard.tsx:65 ~ fetchProfile ~ data:",
-            data
-          );
-          console.log(
-            "🚀 ~ file: ProfileCard.tsx:83 ~ fetchProfile ~ data:",
-            data
-          );
-          if (!data?.cid) throw new Error("No CID found for this address");
-          console.log("CID:", data.cid);
-          stageCid = data.cid;
-        }
+        // if (stageCid === "self") {
+        //   console.log(
+        //     "No cid provided, but self, searching supabase for wallet address",
+        //     walletAddress?.toLowerCase()
+        //   );
+        //   if (!walletAddress) {
+        //     console.log("No wallet, nor cid provided to profile card");
+        //     setLoading(false);
+        //     return;
+        //   }
+        //   const { data } = await supabase
+        //     .from("resumes")
+        //     .select("cid")
+        //     .eq("address", walletAddress.toLowerCase())
+        //     .single();
+        //   console.log(
+        //     "🚀 ~ file: ProfileCard.tsx:65 ~ fetchProfile ~ data:",
+        //     data
+        //   );
+        //   console.log(
+        //     "🚀 ~ file: ProfileCard.tsx:83 ~ fetchProfile ~ data:",
+        //     data
+        //   );
+        //   if (!data?.cid) throw new Error("No CID found for this address");
+        //   console.log("CID:", data.cid);
+        //   stageCid = data.cid;
+        // }
+
+        console.log("cid!.toLowerCase()", cid!.toLowerCase());
+
         const { data } = await supabase
           .from("resumes")
           .select("cid")
@@ -169,6 +176,7 @@ export default function ProfileCard() {
         const cacheEntry = resumeCache.get(stageCid);
         if (cacheEntry) {
           setFetchedProfile(cacheEntry);
+          setLoading(false);
           return;
         }
 
@@ -249,9 +257,9 @@ export default function ProfileCard() {
       {loading ? (
         <SkeletonCard />
       ) : (
-        <div className="flex justify-center bg-white w-[1100px]">
+        <div className="flex relative justify-center bg-white w-[1100px]">
           <div
-            className="flex text-[#73b6ff] text-[18px] mt-5 ml-5 font-semibold cursor-pointer"
+            className="flex absolute -left-0 text-[#73b6ff] text-[18px] mt-5 ml-5 font-semibold cursor-pointer"
             onClick={() => {
               navigate("/");
             }}
@@ -259,7 +267,7 @@ export default function ProfileCard() {
             <IoMdArrowBack className="mt-1" />
             <p>Back</p>
           </div>
-          <div className=" flex flex-col gap-[32px]">
+          <div className=" flex flex-col w-[60%] gap-[32px]">
             <FileUploadModal
               getImage={getImage}
               uploadImage={uploadImage}
@@ -269,19 +277,18 @@ export default function ProfileCard() {
               progress={progress}
             />
             {/* <div className=" ml-10"> */}
-            <div className=" flex items-center justify-center text-gray-800 font-montserrat h-fit  w-full lg:p-10 p-6  rounded-xl ">
+            <div className=" flex items-center justify-center text-gray-800 font-montserrat h-fit  w-[700px]  lg:p-10 p-6  rounded-xl ">
               <Card
                 className={`
             overflow-hidden
             ${"bg-white"}
             rounded-lg
-            w-[70%] 
+            w-[600px]
             shadow-lg 
             p-4  
-            transition-transform 
-            transform hover:scale-105`}
+            `}
               >
-                <div className="profile-info w-full  p-6 ">
+                <div className=" w-full  p-6 ">
                   <div className="flex flex-col items-center">
                     <div className=" flex flex-col items-center justify-between">
                       <div className="flex flex-col items-center justify-start pb-8">
@@ -296,12 +303,7 @@ export default function ProfileCard() {
                                 )!.avatar
                               }
                             />
-                          ) : (
-                            // <Avatar
-                            //   style={{ width: "8rem", height: "8rem" }}
-                            //   className="rounded-full"
-                            //   {...config}
-                            // />
+                          ) : fetchedProfile?.profileImage ? (
                             <img
                               src={
                                 fetchedProfile?.profileImage &&
@@ -309,6 +311,13 @@ export default function ProfileCard() {
                               }
                               className="w-32 h-32 rounded-2xl"
                             />
+                          ) : (
+                            <Avatar
+                              style={{ width: "8rem", height: "8rem" }}
+                              className="rounded-full"
+                              {...config}
+                            />
+                            // <Identicon string={address} size={24} />
                           )}
                         </div>
                         <div className="flex flex-col text-center gap-1">
@@ -329,42 +338,44 @@ export default function ProfileCard() {
                         </div>
                       </div>
                       <div className="flex gap-10 -mt-3 mb-4 items-center justify-center">
-                        <div className="flex h-fit gap-4  ">
-                          <TooltipProvider>
-                            <Tooltip delayDuration={10}>
-                              <TooltipTrigger asChild>
-                                <div className="text-[16px] px-4 py-2 rounded-xl text-lg shadow-xl drop-shadow-md bg-white  font-sans font-medium text-gray-500 tracking-tighter ">
-                                  {" "}
-                                  {scores?.trust_score}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Trust Score</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                          <TooltipProvider>
-                            <Tooltip delayDuration={10}>
-                              <TooltipTrigger asChild>
-                                <div className="text-[16px] px-4 py-2 rounded-xl text-lg shadow-xl drop-shadow-md bg-white  font-sans font-medium text-gray-500 tracking-tighter ">
-                                  {" "}
-                                  {scores?.gitcoin_score}
-                                </div>
-                              </TooltipTrigger>
-                              <TooltipContent>
-                                <p>Gitcoin Score</p>
-                              </TooltipContent>
-                            </Tooltip>
-                          </TooltipProvider>
-                        </div>
+                        {scores?.gitcoin_score && scores?.trust_score && (
+                          <div className="flex h-fit gap-4  ">
+                            <TooltipProvider>
+                              <Tooltip delayDuration={10}>
+                                <TooltipTrigger asChild>
+                                  <div className="text-[16px] px-4 py-2 rounded-xl text-lg shadow-xl drop-shadow-md bg-white  font-sans font-medium text-gray-500 tracking-tighter ">
+                                    {" "}
+                                    {scores?.trust_score}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Trust Score</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                            <TooltipProvider>
+                              <Tooltip delayDuration={10}>
+                                <TooltipTrigger asChild>
+                                  <div className="text-[16px] px-4 py-2 rounded-xl text-lg shadow-xl drop-shadow-md bg-white  font-sans font-medium text-gray-500 tracking-tighter ">
+                                    {" "}
+                                    {scores?.gitcoin_score}
+                                  </div>
+                                </TooltipTrigger>
+                                <TooltipContent>
+                                  <p>Gitcoin Score</p>
+                                </TooltipContent>
+                              </Tooltip>
+                            </TooltipProvider>
+                          </div>
+                        )}
                         {address.toLowerCase() === cid?.toLowerCase() ? (
-                          <div className="w-full flex justify-end mt-6 py-6">
+                          <div className="w-full flex justify-end ">
                             <Link
                               to="/profileEdit"
                               state={{ profileData: fetchedProfile }}
                             >
                               <button
-                                className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-5 py-2.5 text-center mr-2 mb-2"
+                                className="text-white  bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm mt-1 px-4 py-2 text-center"
                                 type="button"
                                 onClick={() => {
                                   navigate("/profileEdit");
@@ -385,9 +396,9 @@ export default function ProfileCard() {
                           // >
                           //   Connect
                           // </button>
-                          <Dialog>
+                          <Dialog open={open} onOpenChange={setOpen}>
                             <DialogTrigger asChild>
-                              <button className="px-4 w-fit mt-1 h-fit hover:scale-105 transition duration-200 text-lg rounded-xl font-semibold tracking-tighter bg-[#0e76fd] text-white py-1.5">
+                              <button className="text-white  bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm mt-1 px-4 py-2 text-center">
                                 Connect
                               </button>
                             </DialogTrigger>
@@ -455,12 +466,17 @@ export default function ProfileCard() {
                               </div>
                               <div className="flex w-full items-end justify-end">
                                 <button
-                                  onClick={clickHandler(
-                                    address,
-                                    walletClient,
-                                    client,
-                                    formData
-                                  )}
+                                  onClick={async () => {
+                                    await clickHandler(
+                                      address,
+                                      walletClient,
+                                      client,
+                                      formData
+                                    );
+                                    setOpen(false);
+
+                                    setFormData({ message: "", type: "" });
+                                  }}
                                   className="px-4 w-fit mt-1 h-fit hover:scale-105 transition duration-200 text-lg rounded-xl font-semibold tracking-tighter bg-[#0e76fd] text-white py-1.5"
                                 >
                                   Send a request
@@ -473,7 +489,7 @@ export default function ProfileCard() {
                     </div>
                     <div className="w-full flex justify-between ">
                       {" "}
-                      <div className="">
+                      <div className="w-full flex items-center text-center justify-center flex-col">
                         {" "}
                         <p className=" text-[16px] leading-normal font-sans font-medium text-gray-500">
                           {fetchedProfile?.description}
@@ -545,7 +561,7 @@ export default function ProfileCard() {
                 )}
             </div> */}
             {/* </div> */}
-            <div className=" pb-8 grid items-center  mx-auto gap-8 grid-cols-2">
+            <div className=" pb-8 grid items-center justify-between w-[120%] -ml-16  gap-8 grid-cols-2">
               {fetchedProfile?.attestationData &&
                 fetchedProfile?.attestationData?.map(
                   (attestation: any, key: any) => {
@@ -565,11 +581,19 @@ export default function ProfileCard() {
                     // );
                     if (typeof message !== "string")
                       return (
-                        <div
-                          className="text-gray-800 font-montserrat h-fit mt-12  card  w-96 rounded-[--card-radius] bg-white shadow ring-1 ring-black/10 [--card-padding:theme(spacing.1)] [--card-radius:theme(borderRadius.2xl)] "
+                        <Card
                           key={key}
+                          className={`
+            overflow-hidden
+            ${"bg-white"}
+            rounded-lg
+            w-96 h-80 
+            shadow-lg 
+            p-4  
+            transition-transform 
+            transform hover:scale-105`}
                         >
-                          <div className=" p-4 border-2 rounded-[calc(var(--card-radius)-var(--card-padding))] border-blue-300">
+                          <div className=" p-4  rounded-[calc(var(--card-radius)-var(--card-padding))] border-blue-300">
                             <div className="w-full text-center">
                               <h5 className="mb-2 text-2xl font-semibold tracking-tight text-gray-900 ">
                                 Attestation {key + 1}
@@ -643,7 +667,7 @@ export default function ProfileCard() {
                         </button>
                       </div> */}
                           </div>
-                        </div>
+                        </Card>
                       );
                   }
                 )}

@@ -30,9 +30,7 @@ const Navbar = () => {
             </span>
           </a>
           <div className="flex gap-2 ml-auto">
-            {!isSignedIn && (
-              <ConnectButton chainStatus={"none"} showBalance={false} />
-            )}
+            {!isSignedIn && <ConnectButton showBalance={false} />}
 
             {!isConnected && (
               <EmailLoginButton

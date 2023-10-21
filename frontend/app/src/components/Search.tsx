@@ -74,7 +74,6 @@ export const clickHandler = (
   formData: FormData
 ) => {
   console.log("client", client);
-
   return (event: React.MouseEvent) => {
     constconnectReq(to, walletClient, client, formData);
     event.preventDefault();
@@ -194,6 +193,8 @@ export const Search: React.FC = () => {
   const imageUrls = getImageUrls();
   const resumeCache = useResumeCache();
   const { client } = useClient();
+  const [open, setOpen] = useState(false);
+
   // const { address } = useWallet();
 
   // const { data: walletClient } = useWalletClient();
@@ -280,7 +281,7 @@ export const Search: React.FC = () => {
   };
 
   return (
-    <div className={"p-4 space-y-2"}>
+    <div className={"p-4 overflow-y-auto space-y-2"}>
       <form onSubmit={handleSubmit(onSubmit)} className={"p-4 rounded"}>
         <Input type="text" placeholder="Search" {...register("searchTerm")} />
       </form>
@@ -292,12 +293,12 @@ export const Search: React.FC = () => {
           <Card
             key={user.pk}
             className={`
-            overflow-hidden
+            overflow-auto
             ${"bg-white"}
             rounded
             w-[370px] 
-            shadow-lg 
-            
+            shadow-md 
+            cursor-pointer
             p-4  
             transition-transform 
             transform hover:scale-105`}
@@ -313,6 +314,7 @@ export const Search: React.FC = () => {
                   items-center 
                   space-x-4
                   w-2/3
+                  flex-1
                   ${"bg-white"}
                   `}
                 to={`/profile/${user.pk}`}
@@ -325,12 +327,12 @@ export const Search: React.FC = () => {
 
                   <AvatarFallback>CN</AvatarFallback>
                 </Avatar>
-                <div className="flex flex-col w-1/2">
+                <div className="flex flex-col w-2/3">
                   <span className="text-xl tracking-tighter">
                     {user.preferredname || user.address || "Anonymous User"}
                   </span>{" "}
                   <span className="text-sm tracking-tight text-gray-500 truncate w-full">
-                    {user.preferredtitle?.slice(0, 24)}
+                    {user.preferredtitle}
                   </span>
                 </div>
               </Link>
@@ -342,9 +344,9 @@ export const Search: React.FC = () => {
                   Connect
                 </button>
               </div> */}
-              <Dialog>
+              <Dialog open={open} onOpenChange={setOpen}>
                 <DialogTrigger asChild>
-                  <button className="px-4 w-fit mt-1 h-fit hover:scale-105 transition duration-200 text-lg rounded-xl font-semibold tracking-tighter bg-[#0e76fd] text-white py-1.5">
+                  <button className="text-white mb-4 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br  focus:outline-none  shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-4 py-2 text-center">
                     Connect
                   </button>
                 </DialogTrigger>
@@ -404,13 +406,18 @@ export const Search: React.FC = () => {
                   </div>
                   <div className="flex w-full items-end justify-end">
                     <button
-                      onClick={clickHandler(
-                        user.address,
-                        walletClient,
-                        client,
-                        formData
-                      )}
-                      className="px-4 w-fit mt-1 h-fit hover:scale-105 transition duration-200 text-lg rounded-xl font-semibold tracking-tighter bg-[#0e76fd] text-white py-1.5"
+                      onClick={async () => {
+                        await clickHandler(
+                          user.address,
+                          walletClient,
+                          client,
+                          formData
+                        );
+                        setOpen(false);
+
+                        setFormData({ message: "", type: "" });
+                      }}
+                      className="text-white mb-4 bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-sm px-4 py-2 text-center  "
                     >
                       Send a request
                     </button>

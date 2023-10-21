@@ -1,5 +1,11 @@
 import "./Menu.css";
-import React, { FC, PropsWithChildren, useState, useEffect, useContext } from "react";
+import React, {
+  FC,
+  PropsWithChildren,
+  useState,
+  useEffect,
+  useContext,
+} from "react";
 import { IconButton } from "@radix-ui/themes";
 import {
   Tooltip,
@@ -7,7 +13,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "../../@/components/ui/tooltip";
-import { Link, Route, Routes } from "react-router-dom";
+import { Link, Route, Routes, useLocation } from "react-router-dom";
 // Alt for messages:
 import {
   AiOutlineMessage,
@@ -24,24 +30,35 @@ import { IoMdArrowBack } from "react-icons/io";
 import "./App.css";
 import { useAccount, useWalletClient } from "wagmi";
 import { Client, useClient } from "@xmtp/react-sdk";
-import Dexie from 'dexie';
+import Dexie from "dexie";
 import { SupabaseContext } from "../contexts/SupabaseContext";
 import { ethers } from "ethers";
-import axios from 'axios';
+import axios from "axios";
+import { useWallet } from "../hooks/useWallet";
+import useEthersWalletClient from "../hooks/useEthersWalletClient";
+import { loadKeys, storeKeys } from "../utils/XMTPHelpers";
 
+const MenuIcon: FC<PropsWithChildren<{ tooltip: string; link: string }>> = ({
+  tooltip,
+  link,
+  children,
+}) => {
+  const location = useLocation();
 
-
-
-
-
-const MenuIcon: FC<
-  PropsWithChildren<{ tooltip: string; link: string; additionalClass?: string }>
-> = ({ tooltip, link, children }) => {
+  const isSelected =
+    location.pathname === link || location.pathname.startsWith(link + "/");
   return (
     <TooltipProvider>
       <Tooltip delayDuration={10}>
         <TooltipTrigger asChild>
-          <Link className="menu-button" to={link}>
+          <Link
+            className={`menu-button ${
+              isSelected
+                ? "from-blue-500 via-blue-600  text-white  to-blue-700  bg-gradient-to-br"
+                : "bg-white hover:text-white text-black"
+            }`}
+            to={link}
+          >
             <IconButton className="sidebar-buttons">{children}</IconButton>
           </Link>
         </TooltipTrigger>
@@ -53,76 +70,98 @@ const MenuIcon: FC<
   );
 };
 
-
-
-
-
-
 export const Menu = () => {
   const [approveListCnt, setApproveListCnt] = useState(0);
 
-
-
-
   const { data: walletClient } = useWalletClient();
-  const { client } = useClient();
+  const { client, initialize } = useClient();
 
   const supabase = useContext(SupabaseContext);
 
- 
+  const [address, setAddress] = useState("");
+  const [selectedTab, setSelectedTab] = useState(0);
+  // const { data: walletClient } = useWalletClient();
+  // const { data: walletClient } = useEthersWalletClient();
+  const { isSignedIn } = useWallet();
+  const { data: localWallet } = useEthersWalletClient();
 
+  const handleConnect = async () => {
+    if (isSignedIn) {
+      const localAddress = await localWallet.getAddress();
+      console.log(
+        "🚀 ~ file: XMTPConnect.tsx:46 ~ handleConnect ~ address:",
+        localAddress
+      );
+      let keys = loadKeys(localAddress!);
+      console.log(
+        "🚀 ~ file: XMTPConnect.tsx:51 ~ handleConnect ~ keys:",
+        keys
+      );
+      if (!keys) {
+        keys = await Client.getKeys(localWallet);
+
+        storeKeys(address!, keys!);
+      }
+      await initialize({ signer: localWallet });
+    } else {
+      let keys = loadKeys(address!);
+      if (!keys) {
+        keys = await Client.getKeys(walletClient!);
+
+        storeKeys(address!, keys!);
+      }
+      await initialize({ keys, signer: walletClient });
+    }
+  };
+
+  useEffect(() => {
+    if (address || isSignedIn) {
+      void handleConnect();
+    }
+  }, []);
 
   useEffect(() => {
     const requests = getConReqListForUserApproval();
     console.log("🚀 ~ file: Menu.tsx:37 ~ useEffect ~ requests:", requests);
     setApproveListCnt(requests.length);
 
-    const clientAddress =  walletClient?.account?.address
-
-    if( client){
-
-
+    if (client) {
       const xmtpLoop = async () => {
+        const clientAddress = await localWallet.getAddress();
+        setAddress(clientAddress);
         try {
           const stream = await client.conversations.stream();
-          let last_reacted_convo="";
+          let last_reacted_convo = "";
           for await (const conversation of stream) {
-            console.log(`New conversation started with ${conversation.peerAddress}`);
+            console.log(
+              `New conversation started with ${conversation.peerAddress}`
+            );
             // Say hello to your new friend
 
-            /*
-            if(conversation.peerAddress===last_reacted_convo)
-              break;
-            */
-            
-            last_reacted_convo=conversation.peerAddress;
+            // if (conversation.peerAddress === last_reacted_convo) break;
+
+            last_reacted_convo = conversation.peerAddress;
             //@ts-ignore
             function sleep(ms) {
-              return new Promise(resolve => setTimeout(resolve, ms));
+              return new Promise((resolve) => setTimeout(resolve, ms));
             }
 
             await sleep(20);
-            let lol = await  syncConversation(conversation,supabase,true)
-            console.log(`syncConversation() returned `,lol);
+            let lol = await syncConversation(conversation, supabase, true);
+            console.log(`syncConversation() returned `, lol);
             // Break from the loop to stop listening
             //This stream will continue infinitely. To end the stream,
             //You can either break from the loop, or call `await stream.return()`.
-            
+
             break;
           }
         } catch (error) {
           console.error("Error fetching user data:", error);
         }
       };
-      
+
       xmtpLoop();
-
-      
-
-      
-  }
-  
-
+    }
   }, [client]);
 
   return (
@@ -158,7 +197,7 @@ export const Menu = () => {
           )} */}
           <AiOutlineUsergroupAdd className={"menu-icon"} />
         </MenuIcon>
-        <MenuIcon tooltip={"My Profile"} link={"/profile/self"}>
+        <MenuIcon tooltip={"My Profile"} link={`/profile/${address}`}>
           <AiOutlineUser className={"menu-icon"} />
         </MenuIcon>
 

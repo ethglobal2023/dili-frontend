@@ -4,7 +4,7 @@ interface ISkeletonCard {}
 
 const SkeletonCard: React.FC<ISkeletonCard> = ({}) => {
   return (
-    <div className="flex justify-center bg-white w-[1100px]">
+    <div className="flex justify-center mt-[72px] bg-white w-[1100px]">
       <div
         role="status"
         className="relative w-[60%] p-4 border h-[500px] border-gray-200 rounded shadow animate-pulse md:p-6 dark:border-gray-700"
