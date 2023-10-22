@@ -21,6 +21,7 @@ module.exports = {
     extend: {
       fontFamily: {
         sans: ["Inter", ...defaultTheme.fontFamily.sans],
+        logo: ["Montserrat", ...defaultTheme.fontFamily.serif],
       },
       colors: {
         border: "hsl(var(--border))",
