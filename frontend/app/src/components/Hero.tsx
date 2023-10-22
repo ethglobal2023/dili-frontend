@@ -6,10 +6,10 @@ interface IHero {}
 const Hero: React.FC<IHero> = ({}) => {
   return (
     <section>
-      <div className="items-center px-8 py-12 mx-auto max-w-7xl lg:px-16 md:px-12 lg:py-24">
+      <div className="items-center px-8 py-12 mx-auto max-w-7xl lg:px-16 md:px-12 lg:py-24 landing">
         <div className="justify-center w-full text-center lg:p-10 max-auto">
           <div className="justify-center w-full mx-auto">
-            <p className="mt-8 text-5xl font-medium tracking-tighter text-black">
+            <p className="mt-8 text-5xl font-medium tracking-tighter text-black bg-clip-text drop-shadow-lg font-[800]">
               Connecting people on-chain
             </p>
             <p className="max-w-xl mx-auto mt-4 text-lg tracking-tight text-gray-600">
@@ -26,8 +26,7 @@ const Hero: React.FC<IHero> = ({}) => {
 
             <a
               href="#"
-              className="inline-flex items-center justify-center text-sm font-semibold text-black duration-200 hover:text-blue-500 focus:outline-none focus-visible:outline-gray-600"
-            >
+              className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-lg px-8 py-4 text-center mr-2 mt-6 ">
               Learn more &nbsp; →
             </a>
           </div>

@@ -98,7 +98,7 @@ export const App: React.FC = () => {
       >
         {/* <BrowserRouter> */}
         {/*<SideBar />*/}
-        <div className=" h-[100vh] overflow-x-hidden bg-white w-[400px]   border-r-[3px]">
+        <div className=" overflow-y-hidden overflow-x-hidden min-h-screen bg-white min-w-[400px] max-w-[400px]  border-r-[3px]">
           <Menu />
           <Routes>
             {["/", "/messages"].map((path, index) => {
