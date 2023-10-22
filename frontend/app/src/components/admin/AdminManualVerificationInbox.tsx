@@ -72,12 +72,17 @@ const InboxRow: React.FC<{ account: string; cid: string }> = ({
         handleSubmit,
         formState: {errors},
         register
-    } = useForm<{accept: boolean}>();
+    } = useForm<{accept: string}>({
+        defaultValues: {
+            accept: "on"
+        }
+    });
 
-    const onConfirmManualVerificationRequest: SubmitHandler<{}> = async (
+    const onConfirmManualVerificationRequest: SubmitHandler<{accept: string}> = async (
         data
     ) => {
         try {
+            console.log("Confirming verification", data, account, cid)
             if (!account || account.length === 0) {
                 setError(
                     "You must be connected w/ a browser wallet to request verification"
@@ -98,7 +103,7 @@ const InboxRow: React.FC<{ account: string; cid: string }> = ({
             const message: ConfirmVerificationMessage = {
                 account: account?.toLowerCase(),
                 cid,
-                accept: data.accept,
+                accept: data.accept === "on",
             };
 
             const signature = await walletClient.signMessage(JSON.stringify(message));
