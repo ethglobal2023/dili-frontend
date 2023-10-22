@@ -935,7 +935,7 @@ const Connections = () => {
                           </p>
                         </div>
                         <p className="text-gray-300 font-sans text-sm">
-                          {simplergetConStatus(item)}
+                          {/* {simplergetConStatus(item)} */}
                         </p>
                       </div>
                       <div className="w-full flex justify-center items-cente">
