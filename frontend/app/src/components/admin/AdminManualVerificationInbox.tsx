@@ -8,6 +8,7 @@ import { MessageWithViemSignature } from "./types";
 import { useWalletClient } from "wagmi";
 import { useWallet } from "../../hooks/useWallet";
 import useEthersWalletClient from "../../hooks/useEthersWalletClient";
+import {getRandomImage} from "../Search";
 
 type VerificationRequest =
   Database["public"]["Tables"]["manual_review_inbox"]["Row"];
@@ -37,7 +38,7 @@ export const AdminManualVerificationInbox: React.FC = () => {
       setRequests(data);
     };
     fetchData();
-    const intervalId = setInterval(fetchData, 5000); // Poll every 5 seconds
+    const intervalId = setInterval(fetchData, 30000); // Poll every 5 seconds
     return () => clearInterval(intervalId); // Clear interval on component unmount
   }, []);
 
@@ -48,7 +49,7 @@ export const AdminManualVerificationInbox: React.FC = () => {
         <InboxRow
           cid={request.cid}
           account={request.account}
-          key={request.cid}
+          // key={request.cid}
         />
       ))}
     </div>
@@ -129,6 +130,7 @@ const InboxRow: React.FC<{ account: string; cid: string }> = ({
     >
       <img
         className="border-2 mr-4 rounded w-24 h-24 object-cover"
+        src={getRandomImage()}
         alt="MEDIA"
       />
       <div className="flex-grow flex flex-col">
