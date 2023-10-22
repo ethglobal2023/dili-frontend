@@ -26,7 +26,8 @@ const Hero: React.FC<IHero> = ({}) => {
 
             <a
               href="#"
-              className="text-white bg-gradient-to-r from-blue-500 via-blue-600 to-blue-700 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-blue-300 dark:focus:ring-blue-800 shadow-lg shadow-blue-500/50 dark:shadow-lg dark:shadow-blue-800/80 font-medium rounded-lg text-lg px-8 py-4 text-center mr-2 mt-6 ">
+              className="inline-flex items-center justify-center text-sm font-semibold text-black duration-200 hover:text-blue-500 focus:outline-none focus-visible:outline-gray-600"
+            >
               Learn more &nbsp; →
             </a>
           </div>
