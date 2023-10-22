@@ -8,6 +8,7 @@ import {Checkbox} from "../../@/components/ui/checkbox";
 import {useContext, useEffect, useState} from "react";
 import {SupabaseContext} from "../contexts/SupabaseContext";
 import useEthersWalletClient from "../hooks/useEthersWalletClient";
+import {Textarea} from "../../@/components/ui/textarea";
 
 export interface UserSettings {
     default_search_engine: string;
@@ -88,13 +89,30 @@ export const Settings = () => {
         }
     };
     useEffect(() => {
+
         const fetchData = async () => {
             const {data, error} = await supabase.from("user_settings").select("*").eq("id", walletClient.getAddress().toString()).single()
+
             if (error) {
                 console.error(error);
+                setLoading(false);
                 return;
             }
-            console.log("data", data);
+            if (data) {
+                setValue("default_search_engine", data.default_search_engine || "https://dili.com/search")
+                setValue("default_ipfs_gateway", data.default_ipfs_gateway || "https://dili.com/ipfs")
+                setValue("min_trust_score", data.min_trust_score || 10)
+                setValue("min_gitcoin_score", data.min_gitcoin_score || 10)
+                // @ts-ignore
+                setValue("trusted_wallets", data.trusted_wallets || [])
+                // @ts-ignore
+                setValue("untrusted_wallets", data.untrusted_wallets || [])
+                setValue("user_high_reputation_reply", data.user_high_reputation_reply || "This is my auto-reply to users with high reputation")
+                setValue("user_low_reputation_reply", data.user_low_reputation_reply || "This is my auto-reply to users with low reputation")
+                setValue("default_automatic_reply", data.default_automatic_reply || "This is my default auto-reploy")
+                setValue("require_connection_announcement_to_connect", data.require_connection_announcement_to_connect || true)
+                setValue("disable_auto_reply", data.disable_auto_reply || false)
+            }
             setLoading(false);
         };
         fetchData();
@@ -127,14 +145,30 @@ export const Settings = () => {
                 </Select>
             </div>
             <div>
-                <Label htmlFor="min_gitcoin_score">Min trust score for new connections</Label>
+                <Label htmlFor="min_trust_score">Min trust score for new connections</Label>
+                <Input {...register("min_trust_score")} id={"min_trust_score"} type="number"
+                       placeholder={"Min trust score for new connections"}/>
+            </div>
+            <div>
+                <Label htmlFor="min_gitcoin_score">Min GitCoin score for new connections</Label>
                 <Input {...register("min_gitcoin_score")} id={"min_gitcoin_score"} type="number"
                        placeholder={"Min trust score for new connections"}/>
             </div>
             <div>
-                <Label htmlFor={"min_gitcoin_score"}>Min GitCoin score for new connections</Label>
-                <Input {...register("min_gitcoin_score")} id={"min_gitcoin_score"} type="number"
-                       placeholder={"Min GitCoin score for new connections"}/>
+                <Label htmlFor={"user_high_reputation_reply"}>Auto-reply message to users w/ high reputation</Label>
+                <Textarea {...register("user_high_reputation_reply")} id={"user_high_reputation_reply"}
+                       placeholder={"Auto-reply message to users w/ high reputation"}/>
+            </div>
+
+            <div>
+                <Label htmlFor={"user_low_reputation_reply"}>Auto-reply message to users w/ low reputation</Label>
+                <Textarea {...register("user_low_reputation_reply")} id={"user_low_reputation_reply"}
+                       placeholder={"Auto-reply message to users w/ low reputation"}/>
+            </div>
+            <div>
+                <Label htmlFor={"default_automatic_reply"}>Default automatic reply, or third reply option</Label>
+                <Textarea {...register("default_automatic_reply")} id={"default_automatic_reply"}
+                       placeholder={"Default automatic reply/third auto-reply message"}/>
             </div>
             <div>
                 <Label htmlFor="">IPFS Gateway</Label>
