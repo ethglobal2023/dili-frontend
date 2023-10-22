@@ -249,6 +249,7 @@ export interface Database {
       people_search: {
         Row: {
           created_at: string
+          gitcoin_score: number | null
           json: Json | null
           on_xmtp: string | null
           pk: string
@@ -260,6 +261,7 @@ export interface Database {
         }
         Insert: {
           created_at?: string
+          gitcoin_score?: number | null
           json?: Json | null
           on_xmtp?: string | null
           pk: string
@@ -271,6 +273,7 @@ export interface Database {
         }
         Update: {
           created_at?: string
+          gitcoin_score?: number | null
           json?: Json | null
           on_xmtp?: string | null
           pk?: string
@@ -369,6 +372,54 @@ export interface Database {
           content_type?: string | null
           headers?: unknown[] | null
           status?: number | null
+        }
+        Relationships: []
+      }
+      user_settings: {
+        Row: {
+          created_at: string
+          default_automatic_reply: string | null
+          default_ipfs_gateway: string | null
+          default_search_engine: string | null
+          disable_auto_reply: boolean | null
+          id: string
+          min_gitcoin_score: number | null
+          min_trust_score: number | null
+          require_connection_announcement_to_connect: boolean | null
+          trusted_wallets: Json | null
+          untrusted_wallets: Json | null
+          user_high_reputation_reply: string | null
+          user_low_reputation_reply: string | null
+        }
+        Insert: {
+          created_at?: string
+          default_automatic_reply?: string | null
+          default_ipfs_gateway?: string | null
+          default_search_engine?: string | null
+          disable_auto_reply?: boolean | null
+          id: string
+          min_gitcoin_score?: number | null
+          min_trust_score?: number | null
+          require_connection_announcement_to_connect?: boolean | null
+          trusted_wallets?: Json | null
+          untrusted_wallets?: Json | null
+          user_high_reputation_reply?: string | null
+          user_low_reputation_reply?: string | null
+        }
+        Update: {
+          created_at?: string
+          default_automatic_reply?: string | null
+          default_ipfs_gateway?: string | null
+          default_search_engine?: string | null
+          disable_auto_reply?: boolean | null
+          id?: string
+          min_gitcoin_score?: number | null
+          min_trust_score?: number | null
+          require_connection_announcement_to_connect?: boolean | null
+          trusted_wallets?: Json | null
+          untrusted_wallets?: Json | null
+          user_high_reputation_reply?: string | null
+          user_low_reputation_reply?: string | null
         }
         Relationships: []
       }
@@ -489,6 +540,20 @@ export interface Database {
             }[]
           }
       no_cache_ipfs: {
+        Args: {
+          _cid: string
+        }
+        Returns: {
+          cid: string
+          created_at: string
+          status: number
+          content_type: string
+          gateway: string
+          body: string
+          json: Json
+        }[]
+      }
+      no_cache_ipfs2: {
         Args: {
           _cid: string
         }
