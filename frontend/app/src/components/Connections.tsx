@@ -24,6 +24,7 @@ import {
   CollapsibleTrigger,
 } from "../../@/components/ui/collapsible";
 import { truncateAddress } from "./EmbeddedWalletModal";
+import { Textarea } from "../../@/components/ui/textarea";
 // import { FontItalicIcon } from "@radix-ui/react-icons"
 
 let clientPreferedEngine = "159.203.132.121:3005/api/"; //TODO change this to using standard settings
@@ -911,11 +912,11 @@ const Connections = () => {
             rounded-lg
             w-[400px] 
             shadow-lg 
-            px-4 py-6  
+            px-6 py-6  
             transition-transform 
             transform hover:shadow-xl`}
                   >
-                    <div className="flex flex-col gap-16 ">
+                    <div className="flex flex-col  ">
                       <div>
                         <div className="r">
                           <a
@@ -926,19 +927,23 @@ const Connections = () => {
                             <strong className="underline">
                               {truncateAddress(item)}
                             </strong>{" "}
-                            is intiving you to connect
                           </a>
+                          is inviting you to connect.
                         </div>
-                        <div className="relative border-2 border-gray-400 rounded-md h-[60px]">
-                          <p className="text-gray-600 ml-2 font-sans">
-                            Looking forward to connect{" "}
-                          </p>
+                        <div className="relative flex items-center   my-4 border-2 border-opacity-40 border-gray-400 rounded-md ">
+                          {/* <p className="text-gray-600  my-6 ml-2 font-sans">
+                            Looking forward to connect with you
+                          </p> */}
+                          <Textarea
+                            placeholder="Looking forward to connect with you"
+                            disabled
+                          />
                         </div>
                         <p className="text-gray-300 font-sans text-sm">
                           {/* {simplergetConStatus(item)} */}
                         </p>
                       </div>
-                      <div className="w-full flex justify-center items-cente">
+                      <div className="w-full flex ml-2 mt-2 -mb-2 justify-center items-center">
                         <button
                           onClick={rejectClickHandler(item)}
                           className="text-white bg-gradient-to-r from-red-400 via-red-500 to-red-600 hover:bg-gradient-to-br focus:ring-4 focus:outline-none focus:ring-red-300 dark:focus:ring-red-800 shadow-lg shadow-red-500/50 font-medium rounded-lg text-sm px-4 mb-4  text-center mr-2  h-[30px]"
