@@ -27,6 +27,7 @@ export interface UserSettings {
 export const Settings = () => {
     const {data: walletClient} = useEthersWalletClient();
     const [loading, setLoading] = useState(true);
+    const [status, setStatus] = useState("");
     const {handleSubmit, control, register, setValue} = useForm<UserSettings>({
         defaultValues: {
             default_search_engine: "https://dili.com/search",
@@ -63,11 +64,11 @@ export const Settings = () => {
         name: "untrusted_wallets"
     });
     const onSubmit = async (data: UserSettings) => {
+        setStatus("Saving user settings...");
         console.log("Saving user settings, raw data:", data);
         try {
-
-            const address = walletClient.getAddress
-            await supabase.from("user_settings").upsert({
+            const address = walletClient.getAddress()
+            const {error} = await supabase.from("user_settings").upsert({
                 id: address.toString(),
                 default_search_engine: data.default_search_engine,
                 default_ipfs_gateway: data.default_ipfs_gateway,
@@ -79,13 +80,17 @@ export const Settings = () => {
                 user_low_reputation_reply: data.user_low_reputation_reply,
                 default_automatic_reply: data.default_automatic_reply,
                 require_connection_announcement_to_connect: data.require_connection_announcement_to_connect,
-                disable_auto_replace: data.disable_auto_reply
+                disable_auto_reply: data.disable_auto_reply
             })
+            if(error) throw error
             console.log("Saved user settings, fetching from db to verify")
             const res = await supabase.from("user_settings").select("*").eq("id", address.toString()).single()
             console.log("Fetched from db to verify saved settings", res)
+            setStatus("Saved user settings")
         } catch (e: any) {
             console.log("Failed to save user settings:")
+            console.error(e)
+            setStatus("Failed to save user settings")
         }
     };
     useEffect(() => {
@@ -132,7 +137,7 @@ export const Settings = () => {
                         <SelectItem value="https://dili.com/search">
                             <div className={"flex align-middle space-x-2"}>
                                 <AiOutlineAccountBook name="placeholder-icon"/>
-                                <span>Cloudflare - https://dili.com/search</span>
+                                <span>Delinked - https://dili.com/search</span>
                             </div>
                         </SelectItem>
                         <SelectItem value="https://www.talentlayer.org">
@@ -186,7 +191,7 @@ export const Settings = () => {
                         <SelectItem value="https://dili.com">
                             <div className={"flex align-middle space-x-2"}>
                                 <AiOutlineAntDesign name="placeholder-icon"/>
-                                <span>DILI - https://dili.com</span>
+                                <span>Delinked - https://dili.com</span>
                             </div>
                         </SelectItem>
                         <SelectItem value="https://w3s.link/ipfs">
@@ -292,6 +297,7 @@ export const Settings = () => {
                 </Button>
             </div>
             <Button type="submit">Submit</Button>
+            <div>{status}</div>
         </form>
     );
 }
