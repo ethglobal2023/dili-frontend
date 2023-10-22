@@ -24,7 +24,7 @@ import {
 import { FiSettings } from "react-icons/fi";
 import { RiAdminLine, RiMessage2Line } from "react-icons/ri";
 import { IoIosNotificationsOutline } from "react-icons/io";
-import { getConReqListForUserApproval, syncConversation } from "./Connections";
+import { getConReqListForUserApproval, syncConversation, syncConversationlist, syncConversationlist2 } from "./Connections";
 import { useNavigate } from "react-router-dom";
 import { IoMdArrowBack } from "react-icons/io";
 import "./App.css";
@@ -122,8 +122,33 @@ export const Menu = () => {
 
   useEffect(() => {
     const requests = getConReqListForUserApproval();
-    console.log("🚀 ~ file: Menu.tsx:37 ~ useEffect ~ requests:", requests);
+
     setApproveListCnt(requests.length);
+
+
+    const timesteps=10010;
+    const interval = setInterval(() => {
+
+
+      const getMessages = async () => {
+
+
+        if(client){
+ 
+          console.log("CheckConvoEvery"+timesteps+"ms ~ setInterval()");
+          await syncConversationlist2(client, supabase);
+        }
+      };
+      getMessages();
+
+    }, timesteps);
+
+
+
+
+
+
+
 
     if (client) {
       const xmtpLoop = async () => {

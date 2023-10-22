@@ -73,9 +73,10 @@ export const clickHandler = (
   client: any,
   formData: FormData
 ) => {
-  console.log("client", client);
+  console.log("clickHandler() constconnectReq", to,client);
+  constconnectReq(to, walletClient, client, formData);
   return (event: React.MouseEvent) => {
-    constconnectReq(to, walletClient, client, formData);
+   // constconnectReq(to, walletClient, client, formData);
     event.preventDefault();
   };
 };
@@ -87,11 +88,11 @@ const constconnectReq = async (
   client: any,
   formData: FormData
 ) => {
-  const address = (await walletClient.getAddress()).toString();
+  const clientAddress = (await walletClient.getAddress()).toString();
 
   const message =
     "connection_request_from_" +
-    address +
+    clientAddress +
     "_to_" +
     to +
     "_______random_salt_" +
@@ -100,7 +101,7 @@ const constconnectReq = async (
     formData.type +
     " " +
     formData.message;
-  console.log("🚀 ~ file: Search.tsx:47 ~ constconnectReq ~ client:", client);
+  console.log("🚀 ~ file:  constconnectReq ~ message  from:"+clientAddress +" to"+to);
 
   if (!walletClient) throw new Error("Wallet client not initialized");
   if (!client) {
@@ -118,13 +119,13 @@ const constconnectReq = async (
   }
   // if (!client) ;
 
-  if (address !== client?.address)
+  if (clientAddress !== client?.address)
     throw new Error(
-      "xmtp client not equal to useWallet " + address + "!===" + client?.address
+      "xmtp client not equal to useWallet " + clientAddress + "!===" + client?.address
     );
   console.log(
     "🚀 ~ file: Search.tsx:81 ~ walletClient.signMessage() with address",
-    address
+    clientAddress
   );
 
   const firstWord = message.split(" ")[0];
@@ -296,13 +297,13 @@ export const Search: React.FC = () => {
       <form onSubmit={handleSubmit(onSubmit)} className={"p-4 rounded"}>
         <Input type="text" placeholder="Search" {...register("searchTerm")} />
       </form>
-      {data.map((user) => {
-        console.log(user);
+      {data.map((u) => {
+        console.log("XXXXdata.map((u) ",u);
         const randomIndex = Math.floor(Math.random() * imageUrls.length);
         const randomImage = imageUrls[randomIndex];
         return (
           <Card
-            key={user.pk}
+            key={u.pk}
             className={`
             overflow-auto
             ${"bg-white"}
@@ -328,11 +329,11 @@ export const Search: React.FC = () => {
                   flex-1
                   ${"bg-white"}
                   `}
-                to={`/profile/${user.pk}`}
+                to={`/profile/${u.pk}`}
               >
                 <Avatar className="w-14 h-14">
                   <AvatarImage
-                    src={user.profileImage || randomImage}
+                    src={u.profileImage || randomImage}
                     sizes={""}
                   />
 
@@ -340,16 +341,16 @@ export const Search: React.FC = () => {
                 </Avatar>
                 <div className="flex flex-col w-2/3">
                   <span className="text-xl tracking-tighter">
-                    {user.preferredname || user.address || "Anonymous User"}
+                    {u.preferredname || u.ok || "Anonymous u"}
                   </span>{" "}
                   <span className="text-sm tracking-tight text-gray-500 truncate w-full">
-                    {user.preferredtitle}
+                    {u.preferredtitle}
                   </span>
                 </div>
               </Link>
               {/* <div className="flex ">
                 <button
-                  onClick={clickHandler(user.address, walletClient, client)}
+                  onClick={clickHandler(u.address, walletClient, client)}
                   className="px-4 w-fit mt-1 h-fit hover:scale-105 transition duration-200 text-lg rounded-xl font-semibold tracking-tighter bg-[#0e76fd] text-white py-1.5"
                 >
                   Connect
@@ -419,7 +420,7 @@ export const Search: React.FC = () => {
                     <button
                       onClick={async () => {
                         await clickHandler(
-                          user.address,
+                          u.pk,
                           walletClient,
                           client,
                           formData

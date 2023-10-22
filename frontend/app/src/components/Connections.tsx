@@ -155,12 +155,6 @@ function isConnectionApproved(peerAddress: string) {
   return out;
 }
 
-export async function syncConversationlist(list: any, supabase: any) {
-  //@ts-ignore
-  list.forEach((c) => {
-    syncConversation(c, supabase);
-  });
-}
 
 function getLocalConvoSync(peerAddress: string, clientAddress: string) {
   const itemid =
@@ -199,9 +193,7 @@ function setLocalConvoSync(
 function getConStatus(peerAddress: string, clientAddress: string) {
   try {
     //@ts-ignore
-    return JSON.parse(
-      localStorage.getItem(
-        ("cr_" + peerAddress + "_clientAddress_" + clientAddress).toUpperCase()
+    return JSON.parse(  localStorage.getItem(   ("cr_" + peerAddress + "_clientAddress_" + clientAddress).toUpperCase()
       )
     );
   } catch (error) {
@@ -223,6 +215,80 @@ function xmsgcontent(xmessage: any) {
     return xmessage.content.content;
 }
 
+
+
+const mininterval=15000;
+export async function syncConversationlist(list: any, supabase: any) {
+
+
+
+  let lastTimesyncConversationlistRan;
+  let tmp = localStorage.getItem("lastTimesyncConversationlistRan");
+  if (!tmp)
+    1===1;
+  else{
+    lastTimesyncConversationlistRan = new Date(tmp);
+    let now = new Date();
+    //@ts-ignore
+    const diffInMs = now - lastTimesyncConversationlistRan ;
+    if( diffInMs<mininterval ){
+      console.log("🚀 ~ file: Connections.tsx:235 Too Fast not running   syncConversationlist again ~ diffInMs:", diffInMs)
+      return;
+    }
+    else{
+      console.log("🚀 ~ file: Connections.tsx:235  OK OK can run  syncConversationlist again ~ diffInMs:", diffInMs)
+    }
+
+
+  }
+
+
+  //@ts-ignore
+  list.forEach((c) => { syncConversation(c, supabase);
+
+  localStorage.setItem("lastTimesyncConversationlistRan",(new Date()).toISOString());
+  });
+}
+
+
+export async function syncConversationlist2(client: any, supabase: any) {
+
+
+
+  let lastTimesyncConversationlistRan;
+  let tmp = localStorage.getItem("lastTimesyncConversationlistRan");
+  if (!tmp)
+    1===1;
+  else{
+    lastTimesyncConversationlistRan = new Date(tmp);
+    let now = new Date();
+    //@ts-ignore
+    const diffInMs = now - lastTimesyncConversationlistRan ;
+    if( diffInMs<mininterval ){
+      console.log("🚀 ~ file: Connections.tsx:235 Too Fast not running   syncConversationlist again ~ diffInMs:", diffInMs)
+      return;
+    }
+    else{
+      console.log("🚀 ~ file: Connections.tsx:235  OK OK can run  syncConversationlist again ~ diffInMs:", diffInMs)
+    }
+
+
+  }
+
+
+  localStorage.setItem("lastTimesyncConversationlistRan",(new Date()).toISOString());
+  const allconvo = await client!.conversations.list();
+
+  console.log("🚀 ~ file: Connections.tsx:235  OK OK can run  syncConversationlist  allconvo.length"+allconvo.length)
+  console.log("🚀 ~ file: Connections.tsx:235  OK OK can run  syncConversationlist  allconvo",allconvo)
+  //@ts-ignore
+  allconvo.forEach((c) => { syncConversation(c, supabase);
+
+  });
+}
+
+
+
 let lastAutoReplyDest = "";
 export async function syncConversation(
   convo: any,
@@ -234,6 +300,9 @@ export async function syncConversation(
   let tmp = localStorage.getItem("lastAutoReplyDest");
   if (!tmp) lastAutoReplyDest = "";
   else lastAutoReplyDest = tmp;
+
+
+
 
   let gitcoinScore = -1;
   if (convo && convo.peerAddress) {
@@ -248,7 +317,7 @@ export async function syncConversation(
     let newc = {};
     let clientReplied = false;
     let anyClientRepliedEvenAuto = false;
-    if (ignoreLocal || !localc) {
+    if (true || ignoreLocal || !localc) {
       //TODO remove true
 
       let m5res = await convo.messages({ limit: 5, direction: 2 });
@@ -483,6 +552,7 @@ export async function syncConversation(
       };
       console.log("🚀 ~ file: App.tsx:68 ~ syncConversation ~ newc:", newc);
 
+      let autoReplyText="";
       //TODO change the below based on user settings
       if (clientReplied) {
         addConToApprovedList(peerAddress);
@@ -500,9 +570,8 @@ export async function syncConversation(
           lastAutoReplyDest.toUpperCase() !== peerAddress.toUpperCase()
         ) {
           lastAutoReplyDest = peerAddress;
-          await convo.send(
-            "I likley won't see this message because there was no public annonymized announcement of this connection request found. Most likely your using an XMTP client which has not implemented the DiLi decentralized spam protection standard. You could install DiLi or try to get incontact with me on another channel mentioning your xmtp address so I can whitelist you. ( auto reply )."
-          );
+          autoReplyText="I likley won't see this message because there was no public annonymized announcement of this connection request found. Most likely your using an XMTP client which has not implemented the DiLi decentralized spam protection standard. You could install DiLi or try to get incontact with me on another channel mentioning your xmtp address so I can whitelist you. ( auto reply )."
+           
         }
       } else if (connectionRequests30days > 5) {
         //@ts-ignore
@@ -513,9 +582,8 @@ export async function syncConversation(
           lastAutoReplyDest.toUpperCase() !== peerAddress.toUpperCase()
         ) {
           lastAutoReplyDest = peerAddress;
-          await convo.send(
-            "This chat request has suprassed my confiugred max connection requests per month and will not show up on my device. Please try me again next month when your messaging volume is lower. ( auto reply )."
-          );
+          autoReplyText= "This chat request has suprassed my confiugred max connection requests per month and will not show up on my device. Please try me again next month when your messaging volume is lower. ( auto reply )."
+         
         }
       } else if (
         peerTrustScore < 5 &&
@@ -530,9 +598,8 @@ export async function syncConversation(
           lastAutoReplyDest.toUpperCase() !== peerAddress.toUpperCase()
         ) {
           lastAutoReplyDest = peerAddress;
-          await convo.send(
-            `Thanks for your connection request. Due to my current high workload it may take some time for me to get back to you. If you could first have a call with my account manager they could find a spot in my calendar and make sure I am the right fit for your project. Please get in contact here: https://calendly.com/copro-onboarding. Note: this was an auto reply.`
-          );
+          autoReplyText= `Thanks for your connection request. Due to my current high workload it may take some time for me to get back to you. If you could first have a call with my account manager they could find a spot in my calendar and make sure I am the right fit for your project. Please get in contact here: https://calendly.com/copro-onboarding. Note: this was an auto reply.`
+         
         }
       } else if (
         peerTrustScore > 25 &&
@@ -549,17 +616,11 @@ export async function syncConversation(
           lastAutoReplyDest.toUpperCase() !== peerAddress.toUpperCase()
         ) {
           lastAutoReplyDest = peerAddress;
-          await convo.send(
-            `Thanks for your connection request. In case you would like to talk about a new consulting project feel free to directly book into my calender   https://calendly.com/wolffr . Note: this was an auto reply.`
-          );
+          autoReplyText=`Thanks for your connection request. In case you would like to talk about a new consulting project feel free to directly book into my calender   https://calendly.com/wolffr . Note: this was an auto reply.`
+         
         }
 
-        console.log(
-          " EVAL EVAL EVAL " +
-            peerAddress +
-            " IS OK         .     data=" +
-            JSON.stringify(newc)
-        );
+     
       } else {
         addConReqToSpamList(peerAddress);
 
@@ -573,6 +634,41 @@ export async function syncConversation(
         );
         //@ts-ignore
       }
+
+      if(autoReplyText!==""){
+        console.log("🚀 ~ file: Connections.tsx:624 ~ autoReplyText:", autoReplyText,peerAddress)
+
+
+        //@ts-ignore
+          let rememberWhoGotAutoReply =[];
+          try{
+            //@ts-ignore
+           const tmpttt= JSON.parse(localStorage.getItem("rememberWhoGotAutoReply"));
+           if(tmpttt)
+            rememberWhoGotAutoReply=tmpttt
+
+          }catch(error){
+            1===1;
+            rememberWhoGotAutoReply=[]
+          }
+          //@ts-ignore
+          if(  !rememberWhoGotAutoReply.includes(peerAddress) ){
+            await convo.send(autoReplyText);
+            //@ts-ignore
+            localStorage.setItem("rememberWhoGotAutoReply",[...rememberWhoGotAutoReply,peerAddress])
+            console.log(" autoReplyText  sent and recorded in  rememberWhoGotAutoReply")
+
+            //@ts-ignore
+            newc['autoReply']=autoReplyText;
+          }
+        }
+
+        console.log(
+          " EVAL EVAL EVAL " +
+            peerAddress +
+            " IS OK         .     data=" +
+            JSON.stringify(newc)
+        );
 
       lastAutoReplyDest = peerAddress;
       localStorage.setItem("lastAutoReplyDest", lastAutoReplyDest);
